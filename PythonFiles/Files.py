@@ -1,16 +1,19 @@
-def run(location, Name):
+def run(location):
 
         import numpy as np
 
         """
         drop files
         file save type
-        naming
         """
 
-        # Save in cloud
-        with open(Name,'wb') as File:
-                File.write(bytes(location,"UTF-8"))
+        # Name = (location.split("\"))[:-1]
+        # Name = r"ExcelFiles\" + Name
+        # print(Name)
+
+        # # Have in onedrive cloud
+        # with open(Name,'wb') as File:
+        #         File.write(bytes(location,"UTF-8"))
         
         # Parse data
         import xlrd
@@ -26,7 +29,7 @@ def run(location, Name):
                 except:
                         return float(In[1:])
 
-        for x in range(6,18):
+        for x in range(6,19):
                 Elements.append(File.cell(x, 1).value)
                 # Percent
                 if File.cell(x, 3).value == "mg/kg":
@@ -35,5 +38,3 @@ def run(location, Name):
                         Results.append(TryFloat(File.cell(x, 4).value))
 
         return np.array(Results), np.array(Elements)
-
-# print(run(r"C:\Users\henryro\OneDrive - Ballarat Grammar School\2019 Software\ProjectB\ExcelFiles\Compost 15mm 2018.xlsx","Soil"))

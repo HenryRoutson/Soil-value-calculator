@@ -74,7 +74,7 @@ class UI(QWidget):
         super().__init__(parent)
 
         Layout = QHBoxLayout()
-        self.setWindowTitle('Version 1')
+        self.setWindowTitle('GUI')
         self.setWindowIcon(QIcon('pythonlogo.png'))
         self.setAutoFillBackground(True)
         self.showMaximized()
@@ -95,14 +95,16 @@ class UI(QWidget):
         # make modular
         global CompostSlider
         CompostSlider = QSlider(Qt.Vertical)
-        CompostSlider.setMaximum(100)
+        # Int resrictions
+        # use %%
+        CompostSlider.setMaximum(500)
         CompostSlider.setValue(0)
         CompostSlider.setMinimum(0)
         CompostSlider.valueChanged.connect(self._update_canvas)
         CompostSlider.setTickPosition(QSlider.TicksBelow)
-        CompostSlider.setTickInterval(2)
-
+        # CompostSlider.setTickInterval(1)
         SliderLayout.addWidget(CompostSlider)
+
         SliderLayout.addWidget(QLabel("Compost"))
     
         "Graph"
@@ -110,22 +112,29 @@ class UI(QWidget):
         GraphLayout.addWidget(canvas)
 
         # optional
-        toolbar = NavigationToolbar2QT(canvas, self, coordinates=True)
+        toolbar = NavigationToolbar2QT(canvas, self)
         GraphLayout.addWidget(toolbar)
 
         self.ax = canvas.figure.subplots()
-
+ 
     def _update_canvas(self):
         self.ax.clear()
-
+        # add dragdrop
         # get files from user
-        CompostValues, CompostNames = Files.run(r"C:\Users\henryro\OneDrive - Ballarat Grammar School\2019 Software\ProjectB\ExcelFiles\Compost 15mm 2018.xlsx","Compost")
-        SoilValues, SoilNames = Files.run(r"C:\Users\henryro\OneDrive - Ballarat Grammar School\2019 Software\ProjectB\ExcelFiles\Soil N.Cole Dam.xlsx","Soil")
+        CompostLink = r"ExcelFiles\Compost 15mm 2018.xlsx"
+        SoilLink = r"ExcelFiles\Soil N.Cole Dam.xlsx"
+        # run module
+        CompostValues, CompostNames = Files.run(CompostLink)
+        SoilValues, SoilNames = Files.run(SoilLink)
         # arbitrary
         n = np.arange(len(CompostValues))
 
+        # set_xticklabels not working
+        # fix graphing scale
+        self.ax.set_xticklabels(CompostNames)
         self.ax.bar(n, SoilValues)
-        self.ax.bar(n, CompostValues*CompostSlider.value()/1000, bottom = SoilValues, color = "grey")
+        self.ax.bar(n, CompostValues*CompostSlider.value()/(10*4), bottom = SoilValues, color = "grey")
+        print(CompostSlider.value()/(10*4))
 
         self.ax.figure.canvas.draw()
 
