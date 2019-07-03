@@ -24,32 +24,50 @@ class MainWindow(QMainWindow):
         self.setStyleSheet("QWidget { background-color: white }")
 
         'Menubar'
-        # actions not working 
-        # combine to one loop
-        mainMenu = self.menuBar()
+        # Shorten with loop over list of names
 
+        MainMenu = self.menuBar()
         # File Menu
-        fileMenu = mainMenu.addMenu('File')
-        fileMenuList = ["Save","Open","Drop","Quit"]
-        for x in fileMenuList:
-            Name = x
-            x = x.replace(" ","_")
-            x = QAction(Name,self)
-            x.triggered.connect(self.x)
-            fileMenu.addAction(x)
+        FileMenu = MainMenu.addMenu('File')
+
+        Save = QAction("Save",self)
+        Save.triggered.connect(self.Save)
+        FileMenu.addAction(Save)
+
+        Open = QAction("Open",self)
+        Open.triggered.connect(self.Open)
+        FileMenu.addAction(Open)
+
+        Drop = QAction("Drop",self)
+        Drop.triggered.connect(self.Drop)
+        FileMenu.addAction(Drop)
+        
+        Quit = QAction("Quit",self)
+        Drop.triggered.connect(self.Quit)
+        FileMenu.addAction(Quit)
 
         # Settings menu
-        SettingsMenu = mainMenu.addMenu('Settings')
-        SettingsMenuList = ["Compound Settings","Text Size Up","Text Size Down","Light/Dark"]
-        for x in SettingsMenuList:
-            Name = x
-            x = x.replace(" ","_")
-            x = QAction(Name,self)
-            x.triggered.connect(self.x)
-            SettingsMenu.addAction(x)
+        SettingsMenu = MainMenu.addMenu('Settings')
+
+        Compound_Settings = QAction("Compound Settings",self)
+        Compound_Settings.triggered.connect(self.Compound_Settings)
+        SettingsMenu.addAction(Compound_Settings)
+
+        Text_Size_Up = QAction("Text Size Up",self)
+        Text_Size_Up.triggered.connect(self.Text_Size_Up)
+        SettingsMenu.addAction(Text_Size_Up)
+
+        Text_Size_Down = QAction("Text Size Down",self)
+        Text_Size_Up.triggered.connect(self.Text_Size_Down)
+        SettingsMenu.addAction(Text_Size_Down)
+
+        Light_Dark = QAction("Light/Dark",self)
+        Light_Dark.triggered.connect(self.Light_Dark)
+        SettingsMenu.addAction(Light_Dark)
 
         # Help menu
-        HelpMenu = mainMenu.addMenu('Help')
+        HelpMenu = MainMenu.addMenu('Help')
+
         Search = QAction("Search",self)
         Search.triggered.connect(self.Search)
         HelpMenu.addAction(Search)
@@ -65,6 +83,19 @@ class MainWindow(QMainWindow):
 
     def Quit(self):
         exit()
+
+    def Compound_Settings(self):
+        print("Compound_Settings")
+
+    def Text_Size_Up(self):
+        print()
+
+    def Text_Size_Down(self):
+        print()
+        # matplotlib.rcParams.update({'font.size': 22})
+
+    def Light_Dark(self):
+        print("")
     
     def Search(self):
         print("helping")
@@ -115,11 +146,13 @@ class UI(QWidget):
         toolbar = NavigationToolbar2QT(canvas, self)
         GraphLayout.addWidget(toolbar)
 
-        self.ax = canvas.figure.subplots()
+        self.Ax = canvas.figure.subplots()
  
     def _update_canvas(self):
-        self.ax.clear()
+
+        self.Ax.clear()
         # add dragdrop
+        # make borders smaller
         # get files from user
         CompostLink = r"ExcelFiles\Compost 15mm 2018.xlsx"
         SoilLink = r"ExcelFiles\Soil N.Cole Dam.xlsx"
@@ -127,20 +160,19 @@ class UI(QWidget):
         CompostValues, CompostNames = Files.run(CompostLink)
         SoilValues, SoilNames = Files.run(SoilLink)
         # arbitrary
-        n = np.arange(len(CompostValues))
+        Natural = np.arange(len(CompostValues))
 
         # set_xticklabels not working
         # fix graphing scale
-        self.ax.set_xticklabels(CompostNames)
-        self.ax.bar(n, SoilValues)
-        self.ax.bar(n, CompostValues*CompostSlider.value()/(10*4), bottom = SoilValues, color = "grey")
-        print(CompostSlider.value()/(10*4))
+        self.Ax.set_xticklabels(CompostNames)
+        self.Ax.bar(Natural, SoilValues)
+        self.Ax.bar(Natural, CompostValues*CompostSlider.value()/(10*4), bottom = SoilValues, color = "grey")
 
-        self.ax.figure.canvas.draw()
+        self.Ax.figure.canvas.draw()
 
 if __name__=='__main__':
 
-    app = QApplication(sys.argv)
+    App = QApplication(sys.argv)
     MainWindow = MainWindow()
     MainWindow.show()
-    sys.exit(app.exec_())
+    sys.exit(App.exec_())
