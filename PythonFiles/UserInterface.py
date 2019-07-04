@@ -38,12 +38,12 @@ class MainWindow(QMainWindow):
         Open.triggered.connect(self.Open)
         FileMenu.addAction(Open)
 
-        Drop = QAction("Drop",self)
-        Drop.triggered.connect(self.Drop)
-        FileMenu.addAction(Drop)
+        DragDrop = QAction("Drag&Drop",self)
+        DragDrop.triggered.connect(self.DragDrop)
+        FileMenu.addAction(DragDrop)
         
         Quit = QAction("Quit",self)
-        Drop.triggered.connect(self.Quit)
+        Quit.triggered.connect(self.Quit)
         FileMenu.addAction(Quit)
 
         # Settings menu
@@ -77,15 +77,19 @@ class MainWindow(QMainWindow):
 
     def Open(self):
         print("Opening")
+        Path = QFileDialog.getOpenFileName(self,'Open File')[0]
+        temp = Files.run(Path)
+        print(temp)
+        return temp
 
-    def Drop(self):
-        print("Open file drop")
-
+    def DragDrop(self):
+        print("DragDrop")
+        
     def Quit(self):
         exit()
 
     def Compound_Settings(self):
-        print("Compound_Settings")
+        Open()
 
     def Text_Size_Up(self):
         print()
@@ -128,7 +132,7 @@ class UI(QWidget):
         CompostSlider = QSlider(Qt.Vertical)
         # Int resrictions
         # use %%
-        CompostSlider.setMaximum(500)
+        CompostSlider.setMaximum(50)
         CompostSlider.setValue(0)
         CompostSlider.setMinimum(0)
         CompostSlider.valueChanged.connect(self._update_canvas)
@@ -167,8 +171,40 @@ class UI(QWidget):
         self.Ax.set_xticklabels(CompostNames)
         self.Ax.bar(Natural, SoilValues)
         self.Ax.bar(Natural, CompostValues*CompostSlider.value()/(10*4), bottom = SoilValues, color = "grey")
+        # reduce margins
 
         self.Ax.figure.canvas.draw()
+
+class DragDrop(QLineEdit):
+    def __init__(self):
+        super(DragDrop, self).__init__()
+        
+        self.setDragEnabled(True)
+        self.hide()
+
+    def dragEnterEvent(self, event):
+        data = event.mimeData()
+        urls = data.urls()
+        if True:
+            event.acceptProposedAction()
+
+    def dragMoveEvent(self, event):
+        dragEnterEvent(self, event)
+
+    def dropEvent(self, event):
+        data = event.mimeData()
+        urls = data.urls()
+        if urls and urls[0].scheme() == 'file':
+            filepath = str(urls[0].path())[1:]
+            # any file type here
+            if filepath[-4:].upper() == ".txt":
+                self.setText(filepath)
+            else:
+                dialog = QMessageBox()
+                dialog.setWindowTitle("Error: Invalid File")
+                dialog.setText("Only .txt files are accepted")
+                dialog.setIcon(QMessageBox.Warning)
+                dialog.exec_()
 
 if __name__=='__main__':
 

@@ -1,25 +1,19 @@
-def run(location):
+def run(path = None, data = None):
 
         import numpy as np
-
-        """
-        drop files
-        file save type
-        """
-
-        # Name = (location.split("\"))[:-1]
-        # Name = r"ExcelFiles\" + Name
-        # print(Name)
-
-        # # Have in onedrive cloud
-        # with open(Name,'wb') as File:
-        #         File.write(bytes(location,"UTF-8"))
-        
-        # Parse data
+        from xlutils.save import save
         import xlrd
+        import os
 
-        File = xlrd.open_workbook(location)
-        File = File.sheet_by_index(0)
+        # path 
+        if path != None:
+                File = xlrd.open_workbook(path)
+                File = File.sheet_by_index(0)   
+        # data
+        if data != None:
+                pass
+                # File = 
+                # save(File,os.path.join("ExcelFiles",path))
 
         Elements,Results = [],[]
 
