@@ -2,6 +2,7 @@
 
 import os
 import sys 
+import re 
 import numpy as np
 
 from PyQt5.QtWidgets import *
@@ -21,7 +22,9 @@ class MainWindow(QMainWindow):
         super(MainWindow, self).__init__()
         self.setCentralWidget(UI(self))
         # Change for dark mode
-        self.setStyleSheet("QWidget { background-color: white }")
+        global Color
+        Color = "white"
+        self.setStyleSheet("QWidget { background-color: "+Color+" }")
 
         'Menubar'
         # Shorten with loop over list of names
@@ -78,9 +81,16 @@ class MainWindow(QMainWindow):
     def Open(self):
         print("Opening")
         Path = QFileDialog.getOpenFileName(self,'Open File')[0]
-        temp = Files.run(Path)
-        print(temp)
-        return temp
+        if re.search("COMPOST",Path.upper()):
+            print("COMPOST")
+            CompostLink = Path
+        elif re.search("SOIL",Path.upper()):
+            print("SOIL")
+            SoilLink = Path
+        else:
+            print("No File identifier - rename with compost or soil in the file name")
+
+        return Path
 
     def DragDrop(self):
         print("DragDrop")
@@ -89,7 +99,7 @@ class MainWindow(QMainWindow):
         exit()
 
     def Compound_Settings(self):
-        Open()
+        Path = Open()
 
     def Text_Size_Up(self):
         print()
@@ -99,7 +109,14 @@ class MainWindow(QMainWindow):
         # matplotlib.rcParams.update({'font.size': 22})
 
     def Light_Dark(self):
-        print("")
+        # global
+        if Color == "white":
+            Color = "black"
+        else:
+            Color = "white"
+        self.setStyleSheet("QWidget { background-color: "+Color+" }")
+
+
     
     def Search(self):
         print("helping")
@@ -143,7 +160,9 @@ class UI(QWidget):
         SliderLayout.addWidget(QLabel("Compost"))
     
         "Graph"
-        canvas = FigureCanvas(Figure(figsize=(5, 3)))
+        global fig
+        fig = Figure(figsize=(5, 3))
+        canvas = FigureCanvas(fig)
         GraphLayout.addWidget(canvas)
 
         # optional
@@ -151,6 +170,10 @@ class UI(QWidget):
         GraphLayout.addWidget(toolbar)
 
         self.Ax = canvas.figure.subplots()
+        global CompostLink
+        CompostLink = r"ExcelFiles\Compost 15mm 2018.xlsx"
+        global SoilLink
+        SoilLink = r"ExcelFiles\Soil N.Cole Dam.xlsx"
  
     def _update_canvas(self):
 
@@ -158,8 +181,7 @@ class UI(QWidget):
         # add dragdrop
         # make borders smaller
         # get files from user
-        CompostLink = r"ExcelFiles\Compost 15mm 2018.xlsx"
-        SoilLink = r"ExcelFiles\Soil N.Cole Dam.xlsx"
+        
         # run module
         CompostValues, CompostNames = Files.run(CompostLink)
         SoilValues, SoilNames = Files.run(SoilLink)
@@ -171,7 +193,8 @@ class UI(QWidget):
         self.Ax.set_xticklabels(CompostNames)
         self.Ax.bar(Natural, SoilValues)
         self.Ax.bar(Natural, CompostValues*CompostSlider.value()/(10*4), bottom = SoilValues, color = "grey")
-        # reduce margins
+        # use sci notation
+        fig.tight_layout()
 
         self.Ax.figure.canvas.draw()
 
