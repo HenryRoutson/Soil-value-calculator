@@ -79,7 +79,6 @@ class MainWindow(QMainWindow):
         print("Saving")
 
     def Open(self):
-        print("Opening")
         Path = QFileDialog.getOpenFileName(self,'Open File')[0]
         if re.search("COMPOST",Path.upper()):
             print("COMPOST")
@@ -89,17 +88,19 @@ class MainWindow(QMainWindow):
             SoilLink = Path
         else:
             print("No File identifier - rename with compost or soil in the file name")
-
         return Path
 
     def DragDrop(self):
         print("DragDrop")
+        # open window
         
     def Quit(self):
         exit()
 
     def Compound_Settings(self):
-        Path = Open()
+        Path = QFileDialog.getOpenFileName(self,'Open File')[0]
+        if re.search("COMPOUND",Path.upper()):
+            print("Compound")
 
     def Text_Size_Up(self):
         print()
@@ -115,9 +116,8 @@ class MainWindow(QMainWindow):
         else:
             Color = "white"
         self.setStyleSheet("QWidget { background-color: "+Color+" }")
+        # matplot
 
-
-    
     def Search(self):
         print("helping")
 
@@ -154,7 +154,6 @@ class UI(QWidget):
         CompostSlider.setMinimum(0)
         CompostSlider.valueChanged.connect(self._update_canvas)
         CompostSlider.setTickPosition(QSlider.TicksBelow)
-        # CompostSlider.setTickInterval(1)
         SliderLayout.addWidget(CompostSlider)
 
         SliderLayout.addWidget(QLabel("Compost"))
@@ -217,15 +216,15 @@ class DragDrop(QLineEdit):
     def dropEvent(self, event):
         data = event.mimeData()
         urls = data.urls()
-        if urls and urls[0].scheme() == 'file':
+        if urls and urls[0].scheme() == 'xlsx':
             filepath = str(urls[0].path())[1:]
             # any file type here
-            if filepath[-4:].upper() == ".txt":
+            if filepath[-5:].upper() == ".xlsx":
                 self.setText(filepath)
             else:
                 dialog = QMessageBox()
                 dialog.setWindowTitle("Error: Invalid File")
-                dialog.setText("Only .txt files are accepted")
+                dialog.setText("Only .xlsx files are accepted")
                 dialog.setIcon(QMessageBox.Warning)
                 dialog.exec_()
 
