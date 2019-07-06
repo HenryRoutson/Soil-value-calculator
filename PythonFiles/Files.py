@@ -12,8 +12,11 @@ def run(path = None, data = None):
         # data
         if data != None:
                 pass
-                # File = 
+                # 
                 # save(File,os.path.join("ExcelFiles",path))
+
+                # File = xlrd.open_workbook(path)
+                # File = File.sheet_by_index(0)
 
         Elements,Results = [],[]
 

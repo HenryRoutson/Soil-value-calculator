@@ -17,14 +17,16 @@ from matplotlib.figure import Figure
 import Adviser
 import Files
 
+global color
+color = "white"
+
 class MainWindow(QMainWindow):
     def __init__(self):
         super(MainWindow, self).__init__()
         self.setCentralWidget(UI(self))
         # Change for dark mode
-        global Color
-        Color = "white"
-        self.setStyleSheet("QWidget { background-color: "+Color+" }")
+        
+        self.setStyleSheet("QWidget { background-color: "+color+" }")
 
         'Menubar'
         # Shorten with loop over list of names
@@ -52,10 +54,6 @@ class MainWindow(QMainWindow):
         # Settings menu
         SettingsMenu = MainMenu.addMenu('Settings')
 
-        Compound_Settings = QAction("Compound Settings",self)
-        Compound_Settings.triggered.connect(self.Compound_Settings)
-        SettingsMenu.addAction(Compound_Settings)
-
         Text_Size_Up = QAction("Text Size Up",self)
         Text_Size_Up.triggered.connect(self.Text_Size_Up)
         SettingsMenu.addAction(Text_Size_Up)
@@ -77,18 +75,23 @@ class MainWindow(QMainWindow):
 
     def Save(self):
         print("Saving")
+        # To pick up again
+        # what to open 
+        # slider values 
 
     def Open(self):
         Path = QFileDialog.getOpenFileName(self,'Open File')[0]
-        if re.search("COMPOST",Path.upper()):
-            print("COMPOST")
-            CompostLink = Path
-        elif re.search("SOIL",Path.upper()):
-            print("SOIL")
+        Type = Path.split("*").upper()
+        if Type == "IDEAL":
+            print("ideal")
+
+        elif Type == "SOIL":
+            print("soil")
             SoilLink = Path
         else:
-            print("No File identifier - rename with compost or soil in the file name")
-        return Path
+            print(Type)
+            # Add slider with type name
+            # avoid overlapp
 
     def DragDrop(self):
         print("DragDrop")
@@ -96,11 +99,6 @@ class MainWindow(QMainWindow):
         
     def Quit(self):
         exit()
-
-    def Compound_Settings(self):
-        Path = QFileDialog.getOpenFileName(self,'Open File')[0]
-        if re.search("COMPOUND",Path.upper()):
-            print("Compound")
 
     def Text_Size_Up(self):
         print()
@@ -111,12 +109,15 @@ class MainWindow(QMainWindow):
 
     def Light_Dark(self):
         # global
-        if Color == "white":
-            Color = "black"
+        global color
+        if color == "white":
+            color = "darkGrey"
         else:
-            Color = "white"
-        self.setStyleSheet("QWidget { background-color: "+Color+" }")
-        # matplot
+            color = "white"
+        # refer to self
+        self.setStyleSheet("QWidget { background-color: "+color+" }")
+        # update canvas
+        # markerfacecolor='blue'
 
     def Search(self):
         print("helping")
@@ -145,16 +146,17 @@ class UI(QWidget):
         
         "Add Slider"
         # make modular
-        global CompostSlider
-        CompostSlider = QSlider(Qt.Vertical)
+        
+        global COMPOST_SLIDER
+        COMPOST_SLIDER = QSlider(Qt.Vertical)
         # Int resrictions
         # use %%
-        CompostSlider.setMaximum(50)
-        CompostSlider.setValue(0)
-        CompostSlider.setMinimum(0)
-        CompostSlider.valueChanged.connect(self._update_canvas)
-        CompostSlider.setTickPosition(QSlider.TicksBelow)
-        SliderLayout.addWidget(CompostSlider)
+        COMPOST_SLIDER.setMaximum(50)
+        COMPOST_SLIDER.setValue(0)
+        COMPOST_SLIDER.setMinimum(0)
+        COMPOST_SLIDER.valueChanged.connect(self._update_canvas)
+        COMPOST_SLIDER.setTickPosition(QSlider.TicksBelow)
+        SliderLayout.addWidget(COMPOST_SLIDER)
 
         SliderLayout.addWidget(QLabel("Compost"))
     
@@ -168,7 +170,7 @@ class UI(QWidget):
         toolbar = NavigationToolbar2QT(canvas, self)
         GraphLayout.addWidget(toolbar)
 
-        self.Ax = canvas.figure.subplots()
+        self.ax = canvas.figure.subplots()
         global CompostLink
         CompostLink = r"ExcelFiles\Compost 15mm 2018.xlsx"
         global SoilLink
@@ -176,7 +178,7 @@ class UI(QWidget):
  
     def _update_canvas(self):
 
-        self.Ax.clear()
+        self.ax.clear()
         # add dragdrop
         # make borders smaller
         # get files from user
@@ -189,19 +191,21 @@ class UI(QWidget):
 
         # set_xticklabels not working
         # fix graphing scale
-        self.Ax.set_xticklabels(CompostNames)
-        self.Ax.bar(Natural, SoilValues)
-        self.Ax.bar(Natural, CompostValues*CompostSlider.value()/(10*4), bottom = SoilValues, color = "grey")
+        self.ax.set_xticklabels(CompostNames)
+        self.ax.bar(Natural, SoilValues)
+        # for x in compound
+        self.ax.bar(Natural, CompostValues*COMPOST_SLIDER.value()/(10*4), bottom = SoilValues, color = "grey")
         # use sci notation
         fig.tight_layout()
 
-        self.Ax.figure.canvas.draw()
+        self.ax.figure.canvas.draw()
 
 class DragDrop(QLineEdit):
     def __init__(self):
         super(DragDrop, self).__init__()
         
         self.setDragEnabled(True)
+        self.setWindowTitle("drop xlsx files")
         self.hide()
 
     def dragEnterEvent(self, event):
@@ -222,11 +226,7 @@ class DragDrop(QLineEdit):
             if filepath[-5:].upper() == ".xlsx":
                 self.setText(filepath)
             else:
-                dialog = QMessageBox()
-                dialog.setWindowTitle("Error: Invalid File")
-                dialog.setText("Only .xlsx files are accepted")
-                dialog.setIcon(QMessageBox.Warning)
-                dialog.exec_()
+                print("Wrong file type")
 
 if __name__=='__main__':
 
