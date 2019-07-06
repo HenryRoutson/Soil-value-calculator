@@ -17,20 +17,22 @@ from matplotlib.figure import Figure
 import Adviser
 import Files
 
-global color
-color = "white"
-
 class MainWindow(QMainWindow):
     def __init__(self):
         super(MainWindow, self).__init__()
-        self.setCentralWidget(UI(self))
-        # Change for dark mode
         
+        # global
+        global color
+        color = "white"
         self.setStyleSheet("QWidget { background-color: "+color+" }")
+
+        # widgets
+        self.setCentralWidget(UI(self))
 
         'Menubar'
         # Shorten with loop over list of names
-
+        # lambda:
+        
         MainMenu = self.menuBar()
         # File Menu
         FileMenu = MainMenu.addMenu('File')
@@ -48,7 +50,7 @@ class MainWindow(QMainWindow):
         FileMenu.addAction(DragDrop)
         
         Quit = QAction("Quit",self)
-        Quit.triggered.connect(self.Quit)
+        Quit.triggered.connect(lambda: exit())
         FileMenu.addAction(Quit)
 
         # Settings menu
@@ -80,19 +82,22 @@ class MainWindow(QMainWindow):
         # slider values 
 
     def Open(self):
-        Path = QFileDialog.getOpenFileName(self,'Open File')[0]
-        Type = Path.split("*").upper()
-        if Type == "IDEAL":
-            print("ideal")
+        # test
+        opened_path = QFileDialog.getOpenFileName(self,'Open File')[0]
+        split_path = opened_path.os.path.split(Type).split(" ")
+        print(split_path)
 
-        elif Type == "SOIL":
-            print("soil")
-            SoilLink = Path
-        else:
-            print(Type)
-            # Add slider with type name
-            # avoid overlapp
-
+        other_links = []
+        for x in split_path:
+            if x.upper() == "IDEAL":
+                ideal_link = opened_path
+            elif x.upper() == "SOIL":
+                ideal_link = opened_path
+            else:
+                # find name 
+                # create new sliders
+                other_links = []
+                
     def DragDrop(self):
         print("DragDrop")
         # open window
@@ -108,19 +113,19 @@ class MainWindow(QMainWindow):
         # matplotlib.rcParams.update({'font.size': 22})
 
     def Light_Dark(self):
-        # global
         global color
         if color == "white":
             color = "darkGrey"
         else:
             color = "white"
-        # refer to self
+
         self.setStyleSheet("QWidget { background-color: "+color+" }")
-        # update canvas
-        # markerfacecolor='blue'
+        # not working 
+        UI(self).setStyleSheet("QWidget { background-color: "+color+" }")
+        UI(self).ax.set_facecolor(color)
 
     def Search(self):
-        print("helping")
+        print("Search")
 
 class UI(QWidget):
     def __init__(self, parent=None): 
@@ -154,7 +159,7 @@ class UI(QWidget):
         COMPOST_SLIDER.setMaximum(50)
         COMPOST_SLIDER.setValue(0)
         COMPOST_SLIDER.setMinimum(0)
-        COMPOST_SLIDER.valueChanged.connect(self._update_canvas)
+        COMPOST_SLIDER.valueChanged.connect(self._update_graph)
         COMPOST_SLIDER.setTickPosition(QSlider.TicksBelow)
         SliderLayout.addWidget(COMPOST_SLIDER)
 
@@ -171,33 +176,25 @@ class UI(QWidget):
         GraphLayout.addWidget(toolbar)
 
         self.ax = canvas.figure.subplots()
-        global CompostLink
-        CompostLink = r"ExcelFiles\Compost 15mm 2018.xlsx"
-        global SoilLink
-        SoilLink = r"ExcelFiles\Soil N.Cole Dam.xlsx"
- 
-    def _update_canvas(self):
+        global compost_link
+        compost_link = r"ExcelFiles\Compost 15mm 2018.xlsx"
+        global soil_link
+        soil_link = r"ExcelFiles\Soil N.Cole Dam.xlsx"
+        self._update_graph()
 
+    def _update_graph(self):
         self.ax.clear()
         # add dragdrop
-        # make borders smaller
-        # get files from user
-        
-        # run module
-        CompostValues, CompostNames = Files.run(CompostLink)
-        SoilValues, SoilNames = Files.run(SoilLink)
-        # arbitrary
-        Natural = np.arange(len(CompostValues))
-
+        SoilValues, SoilNames = Files.run(soil_link)
+        Natural = np.arange(len(SoilValues))
         # set_xticklabels not working
-        # fix graphing scale
-        self.ax.set_xticklabels(CompostNames)
+        self.ax.set_xticklabels(SoilValues)
         self.ax.bar(Natural, SoilValues)
         # for x in compound
+        CompostValues, CompostNames = Files.run(compost_link)
         self.ax.bar(Natural, CompostValues*COMPOST_SLIDER.value()/(10*4), bottom = SoilValues, color = "grey")
         # use sci notation
         fig.tight_layout()
-
         self.ax.figure.canvas.draw()
 
 class DragDrop(QLineEdit):
@@ -230,7 +227,8 @@ class DragDrop(QLineEdit):
 
 if __name__=='__main__':
 
-    App = QApplication(sys.argv)
+    app = QApplication(sys.argv)
+    # app.setStyle('Fusion')
     MainWindow = MainWindow()
     MainWindow.show()
-    sys.exit(App.exec_())
+    sys.exit(app.exec_())

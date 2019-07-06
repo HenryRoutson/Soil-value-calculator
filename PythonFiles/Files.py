@@ -11,7 +11,7 @@ def run(path = None, data = None):
                 File = File.sheet_by_index(0)   
         # data
         if data != None:
-                pass
+                exit()
                 # 
                 # save(File,os.path.join("ExcelFiles",path))
 
