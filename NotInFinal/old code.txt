@@ -1,0 +1,16 @@
+MAIN_MENU = self.menuBar()
+        MAIN_MENU_LIST = ["File","Settings","Help"]
+        ACTIONS_LIST = [["Save","Open","Drag Drop","Quit"],["Text Size Up","Text Size Down","Light Dark"],["Search"]]
+        for y in range(len(MAIN_MENU_LIST)):
+            print("\n", MAIN_MENU_LIST[y])
+            MAIN_MENU_LIST[y] = MAIN_MENU.addMenu(MAIN_MENU_LIST[y])
+            for z in ACTIONS_LIST[y]:
+                z = z.replace(" ","_")
+                name = z
+                print(z)
+                z = QAction(name.replace("_"," "),self)
+                temp = "MainWindow."+name+"()"
+                print(temp)
+                #eval(temp)
+                z.triggered.connect(lambda: exec(temp))
+                MAIN_MENU_LIST[y].addAction(z)

@@ -24,14 +24,11 @@ class MainWindow(QMainWindow):
         # global
         global color
         color = "white"
+        
         self.setStyleSheet("QWidget { background-color: "+color+" }")
-
-        # widgets
         self.setCentralWidget(UI(self))
 
         'Menubar'
-        # Shorten with loop over list of names
-        # lambda:
         
         MainMenu = self.menuBar()
         # File Menu
@@ -45,9 +42,9 @@ class MainWindow(QMainWindow):
         Open.triggered.connect(self.Open)
         FileMenu.addAction(Open)
 
-        DragDrop = QAction("Drag&Drop",self)
-        DragDrop.triggered.connect(self.DragDrop)
-        FileMenu.addAction(DragDrop)
+        DragAndDrop = QAction("Drag&Drop",self)
+        DragAndDrop.triggered.connect(self.DragAndDrop)
+        FileMenu.addAction(DragAndDrop)
         
         Quit = QAction("Quit",self)
         Quit.triggered.connect(lambda: exit())
@@ -98,13 +95,10 @@ class MainWindow(QMainWindow):
                 # create new sliders
                 other_links = []
                 
-    def DragDrop(self):
-        print("DragDrop")
-        # open window
+    def DragAndDrop(self):
+        self.DragDropWindow = DragDrop()
+        self.DragDropWindow.show()
         
-    def Quit(self):
-        exit()
-
     def Text_Size_Up(self):
         print()
 
@@ -203,6 +197,7 @@ class DragDrop(QLineEdit):
         
         self.setDragEnabled(True)
         self.setWindowTitle("drop xlsx files")
+        self.setGeometry(200,200,200,200)
         self.hide()
 
     def dragEnterEvent(self, event):
@@ -216,6 +211,7 @@ class DragDrop(QLineEdit):
 
     def dropEvent(self, event):
         data = event.mimeData()
+        print(data)
         urls = data.urls()
         if urls and urls[0].scheme() == 'xlsx':
             filepath = str(urls[0].path())[1:]
