@@ -22,13 +22,12 @@ class MainWindow(QMainWindow):
         super(MainWindow, self).__init__()
         
         # global
-        global color
-        color = "white"
-        self.setStyleSheet("QWidget { background-color: "+color+" }")
+        self.color = "white"
+        self.text_size = 14
 
-        # widgets
-
-        self.setCentralWidget(UI(self))
+        # param
+        self.UI = UI(self)
+        self.setCentralWidget(self.UI)
 
         'Menubar'
         
@@ -100,25 +99,29 @@ class MainWindow(QMainWindow):
     def DragAndDrop(self):
         self.DragDropWindow = DragDrop()
         self.DragDropWindow.show()
-        
-    def Text_Size_Up(self):
-        print()
+    
+    def update_text_size(self):
+        print(self.text_size)
+        matplotlib.rcParams.update({'font.size': self.text_size})
 
+    def Text_Size_Up(self):
+        self.text_size += 1   
+        update_text_size(self)     
+        
     def Text_Size_Down(self):
-        print()
-        # matplotlib.rcParams.update({'font.size': 22})
+        self.text_size += -1
+        update_text_size(self)
 
     def Light_Dark(self):
-        global color
-        if color == "white":
-            color = "darkGrey"
+        if self.color == "white":
+            self.color = "darkGrey"
         else:
-            color = "white"
+            self.color = "white"
 
-        self.setStyleSheet("QWidget { background-color: "+color+" }")
+        self.setStyleSheet("QWidget { background-color: "+self.color+" }")
         # not working 
-        UI(self).setStyleSheet("QWidget { background-color: "+color+" }")
-        UI(self).ax.set_facecolor(color)
+        self.UI.setStyleSheet("QWidget { background-color: "+self.color+" }")
+        self.UI.ax.set_facecolor(self.color)
 
     def Search(self):
         print("Search")
