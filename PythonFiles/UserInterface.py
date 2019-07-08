@@ -84,7 +84,7 @@ class MainWindow(QMainWindow):
         else:
             print("other")
             # Create slider and bar
-        # update graphs
+        self.UI._update_graph()
                 
     def DragAndDrop(self):
         self.DragDropWindow = DragDrop()
