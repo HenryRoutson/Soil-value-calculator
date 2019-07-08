@@ -1,23 +1,13 @@
-def run(path = None, data = None):
+def run(path = None):
 
         import numpy as np
         from xlutils.save import save
         import xlrd
         import os
 
-        # path 
-        if path != None:
-                File = xlrd.open_workbook(path)
-                File = File.sheet_by_index(0)   
-        # data
-        if data != None:
-                exit()
-                # 
-                # save(File,os.path.join("ExcelFiles",path))
-
-                # File = xlrd.open_workbook(path)
-                # File = File.sheet_by_index(0)
-
+        File = xlrd.open_workbook(path)
+        File = File.sheet_by_index(0)   
+        
         Elements,Results = [],[]
 
         def TryFloat(In):

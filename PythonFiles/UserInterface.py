@@ -24,8 +24,10 @@ class MainWindow(QMainWindow):
         # global
         global color
         color = "white"
-        
         self.setStyleSheet("QWidget { background-color: "+color+" }")
+
+        # widgets
+
         self.setCentralWidget(UI(self))
 
         'Menubar'
@@ -78,18 +80,19 @@ class MainWindow(QMainWindow):
         # what to open 
         # slider values 
 
-    def Open(self):
-        # test
-        opened_path = QFileDialog.getOpenFileName(self,'Open File')[0]
-        split_path = opened_path.os.path.split(Type).split(" ")
+    def Open(self, full_path = None):
+        if full_path == None:
+            full_path = QFileDialog.getOpenFileName(self,'Open File')[0]
+        split_path = full_path.os.path.split(Type).split(" ")
         print(split_path)
 
         other_links = []
+        
         for x in split_path:
             if x.upper() == "IDEAL":
-                ideal_link = opened_path
+                ideal_link = full_path
             elif x.upper() == "SOIL":
-                ideal_link = opened_path
+                ideal_link = full_path
             else:
                 # find name 
                 # create new sliders
@@ -194,33 +197,34 @@ class UI(QWidget):
 class DragDrop(QLineEdit):
     def __init__(self):
         super(DragDrop, self).__init__()
-        
-        self.setDragEnabled(True)
-        self.setWindowTitle("drop xlsx files")
         self.setGeometry(200,200,200,200)
-        self.hide()
+        self.setDragEnabled(True)
+    # simplify functions
 
     def dragEnterEvent(self, event):
         data = event.mimeData()
         urls = data.urls()
-        if True:
+        if urls and urls[0].scheme() == 'file':
             event.acceptProposedAction()
 
     def dragMoveEvent(self, event):
-        dragEnterEvent(self, event)
+        data = event.mimeData()
+        urls = data.urls()
+        if urls and urls[0].scheme() == 'file':
+            event.acceptProposedAction()
 
     def dropEvent(self, event):
         data = event.mimeData()
         print(data)
         urls = data.urls()
-        if urls and urls[0].scheme() == 'xlsx':
+        print(urls)
+        if urls and urls[0].scheme() == 'file':
             filepath = str(urls[0].path())[1:]
-            # any file type here
-            if filepath[-5:].upper() == ".xlsx":
-                self.setText(filepath)
+            if filepath[-5:].upper() == ".XLSX":
+                Open(self, path = filepath)
             else:
-                print("Wrong file type")
-
+                print("This is not a .xlsx file")
+                
 if __name__=='__main__':
 
     app = QApplication(sys.argv)
