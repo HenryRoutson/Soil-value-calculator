@@ -73,30 +73,29 @@ class MainWindow(QMainWindow):
         Search = QAction("Search",self)
         Search.triggered.connect(self.Search)
         HelpMenu.addAction(Search)
-
+        
     def Save(self):
         print("Saving")
         # To pick up again
         # what to open 
         # slider values 
 
-    def Open(self, full_path = None):
-        if full_path == None:
+    def Open(self, full_path):
+        if full_path == False:
             full_path = QFileDialog.getOpenFileName(self,'Open File')[0]
-        split_path = full_path.os.path.split(Type).split(" ")
-        print(split_path)
-
-        other_links = []
-        
-        for x in split_path:
-            if x.upper() == "IDEAL":
-                ideal_link = full_path
-            elif x.upper() == "SOIL":
-                ideal_link = full_path
-            else:
-                # find name 
-                # create new sliders
-                other_links = []
+        name =  os.path.basename(full_path)
+        print(name)
+        if re.search("IDEAL", name.upper()):
+            print("ideal")
+            ideal_link = full_path
+        elif re.search("SOIL", name.upper()):
+            print("soil")
+            global soil_link
+            soil_link = full_path
+        else:
+            print("other")
+            # Create slider and bar
+        # update graphs
                 
     def DragAndDrop(self):
         self.DragDropWindow = DragDrop()
@@ -198,9 +197,10 @@ class DragDrop(QLineEdit):
     def __init__(self):
         super(DragDrop, self).__init__()
         self.setGeometry(200,200,200,200)
+        self.setText("Drag and drop here")
         self.setDragEnabled(True)
-    # simplify functions
 
+    # simplify functions
     def dragEnterEvent(self, event):
         data = event.mimeData()
         urls = data.urls()
@@ -214,6 +214,9 @@ class DragDrop(QLineEdit):
             event.acceptProposedAction()
 
     def dropEvent(self, event):
+        # add support for multiple drops 
+        print()
+        print(event)
         data = event.mimeData()
         print(data)
         urls = data.urls()
@@ -221,7 +224,7 @@ class DragDrop(QLineEdit):
         if urls and urls[0].scheme() == 'file':
             filepath = str(urls[0].path())[1:]
             if filepath[-5:].upper() == ".XLSX":
-                Open(self, path = filepath)
+                MainWindow.Open(filepath)
             else:
                 print("This is not a .xlsx file")
                 
