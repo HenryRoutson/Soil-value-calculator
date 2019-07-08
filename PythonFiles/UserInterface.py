@@ -21,7 +21,7 @@ class MainWindow(QMainWindow):
     def __init__(self):
         super(MainWindow, self).__init__()
         
-        # global
+        # globals
         self.color = "white"
         self.text_size = 14
 
@@ -35,15 +35,11 @@ class MainWindow(QMainWindow):
         # File Menu
         FileMenu = MainMenu.addMenu('File')
 
-        Save = QAction("Save",self)
-        Save.triggered.connect(self.Save)
-        FileMenu.addAction(Save)
-
         Open = QAction("Open",self)
         Open.triggered.connect(self.Open)
         FileMenu.addAction(Open)
 
-        DragAndDrop = QAction("Drag&Drop",self)
+        DragAndDrop = QAction("Drag&Drop Open",self)
         DragAndDrop.triggered.connect(self.DragAndDrop)
         FileMenu.addAction(DragAndDrop)
         
@@ -72,12 +68,6 @@ class MainWindow(QMainWindow):
         Search = QAction("Search",self)
         Search.triggered.connect(self.Search)
         HelpMenu.addAction(Search)
-        
-    def Save(self):
-        print("Saving")
-        # To pick up again
-        # what to open 
-        # slider values 
 
     def Open(self, full_path):
         if full_path == False:
@@ -102,15 +92,16 @@ class MainWindow(QMainWindow):
     
     def update_text_size(self):
         print(self.text_size)
-        matplotlib.rcParams.update({'font.size': self.text_size})
+        # self.UI.fig.rcParams.update({'font.size': self.text_size})
 
+    # shorten with signals
     def Text_Size_Up(self):
         self.text_size += 1   
-        update_text_size(self)     
+        self.update_text_size()     
         
     def Text_Size_Down(self):
         self.text_size += -1
-        update_text_size(self)
+        self.update_text_size()   
 
     def Light_Dark(self):
         if self.color == "white":
@@ -119,9 +110,9 @@ class MainWindow(QMainWindow):
             self.color = "white"
 
         self.setStyleSheet("QWidget { background-color: "+self.color+" }")
-        # not working 
         self.UI.setStyleSheet("QWidget { background-color: "+self.color+" }")
         self.UI.ax.set_facecolor(self.color)
+        # set background
 
     def Search(self):
         print("Search")
@@ -210,26 +201,16 @@ class DragDrop(QLineEdit):
         if urls and urls[0].scheme() == 'file':
             event.acceptProposedAction()
 
-    def dragMoveEvent(self, event):
-        data = event.mimeData()
-        urls = data.urls()
-        if urls and urls[0].scheme() == 'file':
-            event.acceptProposedAction()
-
     def dropEvent(self, event):
-        # add support for multiple drops 
-        print()
-        print(event)
         data = event.mimeData()
-        print(data)
         urls = data.urls()
-        print(urls)
         if urls and urls[0].scheme() == 'file':
-            filepath = str(urls[0].path())[1:]
-            if filepath[-5:].upper() == ".XLSX":
-                MainWindow.Open(filepath)
-            else:
-                print("This is not a .xlsx file")
+            for x in range(len(urls)):
+                filepath = str(urls[x].path())[1:]
+                if filepath[-5:].upper() == ".XLSX":
+                    MainWindow.Open(filepath)
+                else:
+                    print("This is not a .xlsx file")
                 
 if __name__=='__main__':
 
