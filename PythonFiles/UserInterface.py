@@ -28,6 +28,7 @@ class MainWindow(QMainWindow):
         # param
         self.UI = UI(self)
         self.setCentralWidget(self.UI)
+        self.Light_Dark()
 
         'Menubar'
         
@@ -69,26 +70,28 @@ class MainWindow(QMainWindow):
         Search.triggered.connect(self.Search)
         HelpMenu.addAction(Search)
 
-    def Open(self, full_path):
-        if full_path == False:
-            full_path = QFileDialog.getOpenFileName(self,'Open File')[0]
-        name =  os.path.basename(full_path)
-        print(name)
-        if re.search("IDEAL", name.upper()):
-            print("ideal")
-            ideal_link = full_path
-        elif re.search("SOIL", name.upper()):
-            print("soil")
-            global soil_link
-            soil_link = full_path
-        else:
-            print("other")
-            # Create slider and bar
+    def Open(self, full_paths):
+        if full_paths == False:
+            full_paths = QFileDialog.getOpenFileNames(self,'Open File')[0]
+        for full_path in full_paths:
+            name =  os.path.basename(full_path)
+            print(name)
+            if re.search("IDEAL", name.upper()):
+                print("ideal")
+                ideal_link = full_path
+            elif re.search("SOIL", name.upper()):
+                print("soil")
+                global soil_link
+                soil_link = full_path
+            else:
+                print("other")
+                # Create slider and bar
+                self.UI.slider(UI,name)
         self.UI._update_graph()
                 
     def DragAndDrop(self):
-        self.DragDropWindow = DragDrop()
-        self.DragDropWindow.show()
+        self.DragDrop = DragDrop()
+        self.DragDrop.show()
     
     def update_text_size(self):
         print(self.text_size)
@@ -109,10 +112,15 @@ class MainWindow(QMainWindow):
         else:
             self.color = "white"
 
+        try:
+            self.DragDrop.setStyleSheet("QWidget { background-color: "+self.color+" }")
+        except:
+            pass
         self.setStyleSheet("QWidget { background-color: "+self.color+" }")
         self.UI.setStyleSheet("QWidget { background-color: "+self.color+" }")
         self.UI.ax.set_facecolor(self.color)
-        # set background
+        self.UI.fig.set_facecolor(self.color)
+        self.UI._update_graph()
 
     def Search(self):
         print("Search")
@@ -134,31 +142,31 @@ class UI(QWidget):
         Layout = QHBoxLayout()
         self.setLayout(Layout)
         # Sublayouts
-        SliderLayout = QVBoxLayout()
-        Layout.addLayout(SliderLayout)
-        GraphLayout  = QVBoxLayout()
-        Layout.addLayout(GraphLayout)
         
         "Add Slider"
-        # make modular
-        
-        global COMPOST_SLIDER
-        COMPOST_SLIDER = QSlider(Qt.Vertical)
-        # Int resrictions
-        # use %%
-        COMPOST_SLIDER.setMaximum(50)
-        COMPOST_SLIDER.setValue(0)
-        COMPOST_SLIDER.setMinimum(0)
-        COMPOST_SLIDER.valueChanged.connect(self._update_graph)
-        COMPOST_SLIDER.setTickPosition(QSlider.TicksBelow)
-        SliderLayout.addWidget(COMPOST_SLIDER)
 
-        SliderLayout.addWidget(QLabel("Compost"))
+        def slider(self,name):
+            SliderLayout = QVBoxLayout()
+            Layout.addLayout(SliderLayout)
+            exec("self."+name+" = QSlider(Qt.Vertical)")
+            exec("self."+name+".setMaximum(50)")
+            exec("self."+name+".setValue(0)")
+            exec("self."+name+".setMinimum(0)")
+            exec("self."+name+".valueChanged.connect(self._update_graph)")
+            exec("self."+name+".setTickPosition(QSlider.TicksBelow)")
+            exec("SliderLayout.addWidget(self."+name+")")
+            SliderLayout.addWidget(QLabel(name))
+            # update
+            
+        slider(self,"compost")
+        slider(self,"methane")
+
+        GraphLayout  = QVBoxLayout()
+        Layout.addLayout(GraphLayout)
     
         "Graph"
-        global fig
-        fig = Figure(figsize=(5, 3))
-        canvas = FigureCanvas(fig)
+        self.fig = Figure()
+        canvas = FigureCanvas(self.fig)
         GraphLayout.addWidget(canvas)
 
         # optional
@@ -174,27 +182,27 @@ class UI(QWidget):
 
     def _update_graph(self):
         self.ax.clear()
-        # add dragdrop
         SoilValues, SoilNames = Files.run(soil_link)
         Natural = np.arange(len(SoilValues))
-        # set_xticklabels not working
-        self.ax.set_xticklabels(SoilValues)
+        self.ax.set_xticks(Natural)
+        self.ax.set_xticklabels(SoilNames)
         self.ax.bar(Natural, SoilValues)
+
         # for x in compound
         CompostValues, CompostNames = Files.run(compost_link)
-        self.ax.bar(Natural, CompostValues*COMPOST_SLIDER.value()/(10*4), bottom = SoilValues, color = "grey")
-        # use sci notation
-        fig.tight_layout()
+        self.ax.bar(Natural, CompostValues*self.compost.value()/(10*4), bottom = SoilValues, color = "grey")
+
+        self.fig.tight_layout()
         self.ax.figure.canvas.draw()
 
 class DragDrop(QLineEdit):
     def __init__(self):
         super(DragDrop, self).__init__()
         self.setGeometry(200,200,200,200)
+        self.setStyleSheet("QWidget { background-color: "+MainWindow.color+" }")
         self.setText("Drag and drop here")
         self.setDragEnabled(True)
 
-    # simplify functions
     def dragEnterEvent(self, event):
         data = event.mimeData()
         urls = data.urls()
@@ -205,15 +213,16 @@ class DragDrop(QLineEdit):
         data = event.mimeData()
         urls = data.urls()
         if urls and urls[0].scheme() == 'file':
+            full_paths = []
             for x in range(len(urls)):
-                filepath = str(urls[x].path())[1:]
                 if filepath[-5:].upper() == ".XLSX":
-                    MainWindow.Open(filepath)
+                    full_paths.append(str(urls[x].path())[1:])
                 else:
                     print("This is not a .xlsx file")
+            MainWindow.Open(full_paths)
                 
 if __name__=='__main__':
-
+    # close all windows after main
     app = QApplication(sys.argv)
     # app.setStyle('Fusion')
     MainWindow = MainWindow()
