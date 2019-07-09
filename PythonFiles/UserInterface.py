@@ -28,7 +28,10 @@ class MainWindow(QMainWindow):
         # param
         self.UI = UI(self)
         self.setCentralWidget(self.UI)
+        self.showMaximized()
         self.Light_Dark()
+        self.setWindowTitle('GUI')
+        self.setWindowIcon(QIcon('pythonlogo.png'))
 
         'Menubar'
         
@@ -81,12 +84,10 @@ class MainWindow(QMainWindow):
                 ideal_link = full_path
             elif re.search("SOIL", name.upper()):
                 print("soil")
-                global soil_link
-                soil_link = full_path
+                self.UI.soil_link = full_path
             else:
                 print("other")
-                # Create slider and bar
-                self.UI.slider(UI,name)
+                self.UI.sliders.append(full_path)
         self.UI._update_graph()
                 
     def DragAndDrop(self):
@@ -95,8 +96,10 @@ class MainWindow(QMainWindow):
     
     def update_text_size(self):
         print(self.text_size)
+        # pqyt
         # self.UI.fig.rcParams.update({'font.size': self.text_size})
 
+    # not working
     # shorten with signals
     def Text_Size_Up(self):
         self.text_size += 1   
@@ -108,10 +111,9 @@ class MainWindow(QMainWindow):
 
     def Light_Dark(self):
         if self.color == "white":
-            self.color = "darkGrey"
+            self.color = "#3D3D3D"
         else:
             self.color = "white"
-
         try:
             self.DragDrop.setStyleSheet("QWidget { background-color: "+self.color+" }")
         except:
@@ -129,13 +131,7 @@ class UI(QWidget):
     def __init__(self, parent=None): 
         super().__init__(parent)
 
-        Layout = QHBoxLayout()
-        self.setWindowTitle('GUI')
-        self.setWindowIcon(QIcon('pythonlogo.png'))
-        self.setAutoFillBackground(True)
-        self.showMaximized()
-        # Change for dark mode
-        self.setStyleSheet("QWidget { background-color: white }")
+        # inherit
         
         'Layouts'
         # MainLayout
@@ -145,6 +141,11 @@ class UI(QWidget):
         
         "Add Slider"
 
+        self.sliders = []
+        
+        # not working dynamically 
+        # remove exec
+        # use as subclass
         def slider(self,name):
             SliderLayout = QVBoxLayout()
             Layout.addLayout(SliderLayout)
@@ -156,10 +157,7 @@ class UI(QWidget):
             exec("self."+name+".setTickPosition(QSlider.TicksBelow)")
             exec("SliderLayout.addWidget(self."+name+")")
             SliderLayout.addWidget(QLabel(name))
-            # update
-            
-        slider(self,"compost")
-        slider(self,"methane")
+            # update graph
 
         GraphLayout  = QVBoxLayout()
         Layout.addLayout(GraphLayout)
@@ -174,29 +172,31 @@ class UI(QWidget):
         GraphLayout.addWidget(toolbar)
 
         self.ax = canvas.figure.subplots()
-        global compost_link
-        compost_link = r"ExcelFiles\Compost 15mm 2018.xlsx"
-        global soil_link
-        soil_link = r"ExcelFiles\Soil N.Cole Dam.xlsx"
+        # avoid default
+        self.soil_link = "ExcelFiles\Soil N.Cole Little.xlsx"
         self._update_graph()
 
     def _update_graph(self):
+        print(self.sliders)
         self.ax.clear()
-        SoilValues, SoilNames = Files.run(soil_link)
+        SoilValues, SoilNames = Files.run(self.soil_link)
         Natural = np.arange(len(SoilValues))
         self.ax.set_xticks(Natural)
         self.ax.set_xticklabels(SoilNames)
         self.ax.bar(Natural, SoilValues)
 
-        # for x in compound
-        CompostValues, CompostNames = Files.run(compost_link)
-        self.ax.bar(Natural, CompostValues*self.compost.value()/(10*4), bottom = SoilValues, color = "grey")
+        for full_path in self.sliders:
+            values, names = Files.run(full_path)
+            name =  os.path.basename(full_path).replace(" ","_")
+            MainWindow.slider(name)
+            exec("self.ax.bar(Natural, values*self."+name+".value()/(10*4), bottom = SoilValues, color = 'grey'")
 
         self.fig.tight_layout()
         self.ax.figure.canvas.draw()
 
 class DragDrop(QLineEdit):
     def __init__(self):
+        # inherit
         super(DragDrop, self).__init__()
         self.setGeometry(200,200,200,200)
         self.setStyleSheet("QWidget { background-color: "+MainWindow.color+" }")

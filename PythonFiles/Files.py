@@ -1,4 +1,4 @@
-def run(path = None):
+def run(path):
 
         import numpy as np
         from xlutils.save import save
@@ -7,7 +7,7 @@ def run(path = None):
 
         File = xlrd.open_workbook(path)
         File = File.sheet_by_index(0)   
-        
+
         Elements,Results = [],[]
 
         def TryFloat(In):
