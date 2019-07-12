@@ -69,9 +69,9 @@ class MainWindow(QMainWindow):
         # Help menu
         HelpMenu = MainMenu.addMenu('Help')
 
-        Search = QAction("Search",self)
-        Search.triggered.connect(self.Search)
-        HelpMenu.addAction(Search)
+        Documentation = QAction("Open documentation",self)
+        Documentation.triggered.connect(lambda: os.system('start Documentation'))
+        HelpMenu.addAction(Documentation)
 
     def Open(self, full_paths):
         if full_paths == False:
@@ -95,9 +95,10 @@ class MainWindow(QMainWindow):
         self.DragDrop.show()
 
     def update_text_size(self):
-        print(self.text_size)
-        # pqyt
-        # self.UI.fig.rcParams.update({'font.size': self.text_size})
+        pass
+    # for x in self.UI.sliders:
+    #     settextsize(self.text_size)
+    # self.UI.fig.rcParams.update({'font.size': self.text_size})
 
     # not working
     # shorten with signals
@@ -124,9 +125,6 @@ class MainWindow(QMainWindow):
         self.UI.fig.set_facecolor(self.color)
         self.UI._update_graph()
 
-    def Search(self):
-        print("Search")
-
 class UI(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -151,8 +149,8 @@ class UI(QWidget):
             Layout.addLayout(SliderLayout)
             exec("self."+name+" = QSlider(Qt.Vertical)")
             # set color
-            # max in percent
-            exec("self."+name+".setMaximum(20000)")
+            # max/10**6
+            exec("self."+name+".setMaximum(50000)")
             exec("self."+name+".setValue(0)")
             exec("self."+name+".setMinimum(0)")
             exec("self."+name+".valueChanged.connect(self._update_graph)")
@@ -196,13 +194,14 @@ class UI(QWidget):
         # color = bar and slider
         # tonnes per hactare
         
-        full_path = r"C:\Users\henryro\OneDrive - Ballarat Grammar School\2019 Software\Sat\ExcelFiles\Compost 15mmm 2018 Office.xlsx"
+        full_path = r"ExcelFiles\Compost Geelong Sample.xlsx"
         values, names = Files.run(full_path)
+        # T/Ha
         self.valueWidget.setText(str(round(1330*self.Compost.value()/10**6,1)))
         self.ax.bar(Natural, values*self.Compost.value()/10**6, bottom = SoilValues)
-        print(self.Compost.value()/10**6)
 
         # outline
+        
         self.ax.bar(Natural, IdealValues*4, facecolor="None", edgecolor='red', linewidth=0.5)
         self.ax.bar(Natural, IdealValues, facecolor="None", edgecolor='green', linewidth=0.5)
 

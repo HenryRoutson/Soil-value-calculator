@@ -17,7 +17,6 @@ def run(path):
                         # >5
                         return float(In[1:])
 
-
         G_SQM = 133000
         for x in range(6,19):
                 Elements.append(File.cell(x, 1).value)
@@ -31,6 +30,6 @@ def run(path):
                 elif measure == "%":
                         Results.append(value)
                 else:
-                        print("No measure")
+                        print("No measure - use mg/kg, g/sqm or %")
 
         return np.array(Results), np.array(Elements)
