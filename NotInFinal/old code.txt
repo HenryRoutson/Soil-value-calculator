@@ -41,4 +41,11 @@ def slider(self,name):
         # SliderLayout.addWidget(COMPOST_SLIDER)
 
         # SliderLayout.addWidget(QLabel("Compost"))
+
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+for full_path in self.sliders:
+            values, names = Files.run(full_path)
+            name =  os.path.basename(full_path).replace(" ","_")
+            MainWindow.slider(name)
+            exec("self.ax.bar(Natural, values*self."+name+".value()/(10*4), bottom = SoilValues, color = 'grey'")
     

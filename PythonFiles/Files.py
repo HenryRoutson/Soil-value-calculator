@@ -14,14 +14,23 @@ def run(path):
                 try:
                         return float(In)
                 except:
+                        # >5
                         return float(In[1:])
 
+
+        G_SQM = 133000
         for x in range(6,19):
                 Elements.append(File.cell(x, 1).value)
-                # Percent
-                if File.cell(x, 3).value == "mg/kg":
-                        Results.append(TryFloat(File.cell(x, 4).value)/(10**6))
+                # To percent
+                measure = File.cell(x, 3).value
+                value = TryFloat(File.cell(x, 4).value)
+                if measure == "mg/kg":
+                        Results.append(value/(10**6))
+                elif measure == "g/sqm":
+                        Results.append(value/G_SQM)
+                elif measure == "%":
+                        Results.append(value)
                 else:
-                        Results.append(TryFloat(File.cell(x, 4).value))
+                        print("No measure")
 
         return np.array(Results), np.array(Elements)

@@ -1,8 +1,8 @@
 "GUI"
 
 import os
-import sys 
-import re 
+import sys
+import re
 import numpy as np
 
 from PyQt5.QtWidgets import *
@@ -20,9 +20,9 @@ import Files
 class MainWindow(QMainWindow):
     def __init__(self):
         super(MainWindow, self).__init__()
-        
+
         # globals
-        self.color = "white"
+        self.color = "black"
         self.text_size = 14
 
         # param
@@ -34,7 +34,7 @@ class MainWindow(QMainWindow):
         self.setWindowIcon(QIcon('pythonlogo.png'))
 
         'Menubar'
-        
+
         MainMenu = self.menuBar()
         # File Menu
         FileMenu = MainMenu.addMenu('File')
@@ -46,7 +46,7 @@ class MainWindow(QMainWindow):
         DragAndDrop = QAction("Drag&Drop Open",self)
         DragAndDrop.triggered.connect(self.DragAndDrop)
         FileMenu.addAction(DragAndDrop)
-        
+
         Quit = QAction("Quit",self)
         Quit.triggered.connect(lambda: exit())
         FileMenu.addAction(Quit)
@@ -81,7 +81,7 @@ class MainWindow(QMainWindow):
             print(name)
             if re.search("IDEAL", name.upper()):
                 print("ideal")
-                ideal_link = full_path
+                self.UI.ideal_link = full_path
             elif re.search("SOIL", name.upper()):
                 print("soil")
                 self.UI.soil_link = full_path
@@ -89,11 +89,11 @@ class MainWindow(QMainWindow):
                 print("other")
                 self.UI.sliders.append(full_path)
         self.UI._update_graph()
-                
+
     def DragAndDrop(self):
         self.DragDrop = DragDrop()
         self.DragDrop.show()
-    
+
     def update_text_size(self):
         print(self.text_size)
         # pqyt
@@ -102,12 +102,12 @@ class MainWindow(QMainWindow):
     # not working
     # shorten with signals
     def Text_Size_Up(self):
-        self.text_size += 1   
-        self.update_text_size()     
-        
+        self.text_size += 1
+        self.update_text_size()
+
     def Text_Size_Down(self):
         self.text_size += -1
-        self.update_text_size()   
+        self.update_text_size()
 
     def Light_Dark(self):
         if self.color == "white":
@@ -128,40 +128,46 @@ class MainWindow(QMainWindow):
         print("Search")
 
 class UI(QWidget):
-    def __init__(self, parent=None): 
+    def __init__(self, parent=None):
         super().__init__(parent)
 
         # inherit
-        
+
         'Layouts'
         # MainLayout
         Layout = QHBoxLayout()
         self.setLayout(Layout)
         # Sublayouts
-        
+
         "Add Slider"
 
         self.sliders = []
-        
-        # not working dynamically 
+
+        # not working dynamically
         # remove exec
         # use as subclass
-        def slider(self,name):
+        def slider(self,name,color):
             SliderLayout = QVBoxLayout()
             Layout.addLayout(SliderLayout)
             exec("self."+name+" = QSlider(Qt.Vertical)")
-            exec("self."+name+".setMaximum(50)")
+            # set color
+            # max in percent
+            exec("self."+name+".setMaximum(20000)")
             exec("self."+name+".setValue(0)")
             exec("self."+name+".setMinimum(0)")
             exec("self."+name+".valueChanged.connect(self._update_graph)")
             exec("self."+name+".setTickPosition(QSlider.TicksBelow)")
             exec("SliderLayout.addWidget(self."+name+")")
             SliderLayout.addWidget(QLabel(name))
+            self.valueWidget = QLabel("0")
+            SliderLayout.addWidget(self.valueWidget)
             # update graph
+
+        slider(self,"Compost","lightBlue")
 
         GraphLayout  = QVBoxLayout()
         Layout.addLayout(GraphLayout)
-    
+
         "Graph"
         self.fig = Figure()
         canvas = FigureCanvas(self.fig)
@@ -173,24 +179,35 @@ class UI(QWidget):
 
         self.ax = canvas.figure.subplots()
         # avoid default
-        self.soil_link = "ExcelFiles\Soil N.Cole Little.xlsx"
+        self.soil_link = r"ExcelFiles\Soil N.Cole Little.xlsx"
+        self.ideal_link = r"C:\Users\henryro\OneDrive - Ballarat Grammar School\2019 Software\Sat\ExcelFiles\Ideal.xlsx"
         self._update_graph()
 
     def _update_graph(self):
-        print(self.sliders)
         self.ax.clear()
-        SoilValues, SoilNames = Files.run(self.soil_link)
-        Natural = np.arange(len(SoilValues))
+
+        # solid
+        SoilValues, names = Files.run(self.soil_link)
+        IdealValues, names = Files.run(self.ideal_link)
+        Natural = np.arange(len(names))
+        self.ax.bar(Natural, SoilValues, color = "grey")
+
+        # for x in range
+        # color = bar and slider
+        # tonnes per hactare
+        
+        full_path = r"C:\Users\henryro\OneDrive - Ballarat Grammar School\2019 Software\Sat\ExcelFiles\Compost 15mmm 2018 Office.xlsx"
+        values, names = Files.run(full_path)
+        self.valueWidget.setText(str(round(1330*self.Compost.value()/10**6,1)))
+        self.ax.bar(Natural, values*self.Compost.value()/10**6, bottom = SoilValues)
+        print(self.Compost.value()/10**6)
+
+        # outline
+        self.ax.bar(Natural, IdealValues*4, facecolor="None", edgecolor='red', linewidth=0.5)
+        self.ax.bar(Natural, IdealValues, facecolor="None", edgecolor='green', linewidth=0.5)
+
         self.ax.set_xticks(Natural)
-        self.ax.set_xticklabels(SoilNames)
-        self.ax.bar(Natural, SoilValues)
-
-        for full_path in self.sliders:
-            values, names = Files.run(full_path)
-            name =  os.path.basename(full_path).replace(" ","_")
-            MainWindow.slider(name)
-            exec("self.ax.bar(Natural, values*self."+name+".value()/(10*4), bottom = SoilValues, color = 'grey'")
-
+        self.ax.set_xticklabels(names)
         self.fig.tight_layout()
         self.ax.figure.canvas.draw()
 
@@ -220,7 +237,7 @@ class DragDrop(QLineEdit):
                 else:
                     print("This is not a .xlsx file")
             MainWindow.Open(full_paths)
-                
+
 if __name__=='__main__':
     # close all windows after main
     app = QApplication(sys.argv)
