@@ -148,12 +148,15 @@ class UI(QWidget):
         self.graph.addWidget(toolbar)
 
         self.ax = canvas.figure.subplots()
-        # avoid default
         self.soil_link = r""
         self.ideal_link = r""
         self.update_values()
 
     def create_slider(self,path):
+        # avoids duplicates
+        for x in self.sliderLinks:
+            if path == x:
+                return Nones
         self.sliderLinks.append(path)
         slider = QSlider(Qt.Vertical)
         # slider.color
@@ -161,7 +164,7 @@ class UI(QWidget):
         slider.setValue(0)
         slider.setMinimum(0)
         slider.valueChanged.connect(self.update_graph)
-        slider.setTickPosition(QSlider.TicksBelow)
+        #slider.setTickPosition(QSlider.TicksBelow)
         self.sliders.addWidget(slider) # slider
         button = QPushButton()
         name = os.path.basename(path).replace(".xlsx","")
@@ -175,44 +178,53 @@ class UI(QWidget):
         self.sliders.itemAt(index).widget().deleteLater()
         self.buttons.itemAt(index).widget().deleteLater()
         self.values.itemAt(index).widget().deleteLater()
+        self.update_values()
 
-    # remove files.run from update graph
     def update_values(self):
         try:
             self.soilValues, self.names = Files.run(self.soil_link)
+        except:
+            pass
+        try:
             self.IdealValues, self.names = Files.run(self.ideal_link)
-            self.file_values = []
-            for x in self.sliderLinks:
-                self.file_values.append(Files.run(x)[0])
+        except:
+            pass
+        self.file_values = []
+        for x in self.sliderLinks:
+            self.file_values.append(Files.run(x)[0])
+        try:
             self.update_graph()
         except:
             pass
 
     def update_graph(self):
-        self.ax.clear()
-        
-        # solid
-        xs = np.arange(len(self.names))
-        self.ax.bar(xs, self.soilValues, color = "grey")
-        values_sum = np.array(self.soilValues)
-        
-        for index in range(len(self.sliderLinks)):
-            # color = bar and slider
-            slider_value = self.sliders.itemAt(index).widget().value()
-            ys = np.array(self.file_values[index]*slider_value/10**6)
-            self.ax.bar(xs, ys, bottom = values_sum)
-            values_sum += ys
-            T_Ha = round(1330*slider_value/10**6,0)
-            self.values.itemAt(index).widget().setText(str(T_Ha)+"T/Ha")
+        try:
+            self.ax.clear()
+            
+            # solid
+            xs = np.arange(len(self.names))
+            self.ax.bar(xs, self.soilValues, color = "grey")
+            values_sum = np.array(self.soilValues)
+            
+            for index in range(len(self.sliderLinks)):
+                # color = bar and slider
+                slider_value = self.sliders.itemAt(index).widget().value()
+                ys = np.array(self.file_values[index]*slider_value/10**6)
+                self.ax.bar(xs, ys, bottom = values_sum)
+                values_sum += ys
+                T_Ha = round(1330*slider_value/10**6,1)
+                self.values.itemAt(index).widget().setText(str(T_Ha)+"T/Ha")
 
-        # outline
-        self.ax.bar(xs, self.IdealValues*4, facecolor="None", edgecolor='red', linewidth=0.5)
-        self.ax.bar(xs, self.IdealValues, facecolor="None", edgecolor='green', linewidth=0.5)
-
-        self.ax.set_xticks(xs)
-        self.ax.set_xticklabels(self.names)
-        self.fig.tight_layout()
-        self.ax.figure.canvas.draw()
+            # outline
+            self.ax.bar(xs, self.IdealValues, facecolor="None", edgecolor='green', linewidth=0.5)
+            self.ax.bar(xs, self.IdealValues*4, facecolor="None", edgecolor='red', linewidth=0.5)
+            
+            self.ax.set_xticks(xs)
+            self.ax.set_xticklabels(self.names)
+            self.fig.tight_layout()
+            self.ax.figure.canvas.draw()
+        except:
+            pass
 
 class DragDrop(QLineEdit):
     def __init__(self):
@@ -244,7 +256,6 @@ class DragDrop(QLineEdit):
 if __name__=='__main__':
     # close all windows after main
     app = QApplication(sys.argv)
-    # app.setStyle('Fusion')
     MainWindow = MainWindow()
     MainWindow.show()
     sys.exit(app.exec_())

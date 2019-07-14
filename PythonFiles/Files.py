@@ -28,7 +28,7 @@ def run(path):
                 elif measure == "g/sqm":
                         Results.append(value/G_SQM)
                 elif measure == "%":
-                        Results.append(value)
+                        Results.append(value/100)
                 else:
                         print("No measure - use mg/kg, g/sqm or %")
 
