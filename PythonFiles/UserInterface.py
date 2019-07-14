@@ -87,7 +87,6 @@ class MainWindow(QMainWindow):
             else:
                 self.UI.create_slider(full_path)
         self.UI.update_values()
-        # self.UI.update_graph()
 
     def DragAndDrop(self):
         self.DragDrop = DragDrop()
@@ -113,7 +112,7 @@ class MainWindow(QMainWindow):
         self.UI.setStyleSheet("QWidget { background-color: "+self.color+" }")
         self.UI.ax.set_facecolor(self.color)
         self.UI.fig.set_facecolor(self.color)
-        self.UI.update_graph()
+        self.UI.update_values()
 
 class UI(QWidget):
     def __init__(self, parent=None):
@@ -150,10 +149,9 @@ class UI(QWidget):
 
         self.ax = canvas.figure.subplots()
         # avoid default
-        self.soil_link = r"ExcelFiles\Soil N.Cole Little.xlsx"
-        self.ideal_link = r"C:\Users\henryro\OneDrive - Ballarat Grammar School\2019 Software\Sat\ExcelFiles\Ideal.xlsx"
+        self.soil_link = r""
+        self.ideal_link = r""
         self.update_values()
-        self.update_graph()
 
     def create_slider(self,path):
         self.sliderLinks.append(path)
@@ -180,12 +178,15 @@ class UI(QWidget):
 
     # remove files.run from update graph
     def update_values(self):
-        self.soilValues, self.names = Files.run(self.soil_link)
-        self.IdealValues, self.names = Files.run(self.ideal_link)
-        self.file_values = []
-        for x in self.sliderLinks:
-            print(x)
-            self.file_values.append(Files.run(x)[0])
+        try:
+            self.soilValues, self.names = Files.run(self.soil_link)
+            self.IdealValues, self.names = Files.run(self.ideal_link)
+            self.file_values = []
+            for x in self.sliderLinks:
+                self.file_values.append(Files.run(x)[0])
+            self.update_graph()
+        except:
+            pass
 
     def update_graph(self):
         self.ax.clear()
@@ -201,7 +202,6 @@ class UI(QWidget):
             ys = np.array(self.file_values[index]*slider_value/10**6)
             self.ax.bar(xs, ys, bottom = values_sum)
             values_sum += ys
-
             T_Ha = round(1330*slider_value/10**6,0)
             self.values.itemAt(index).widget().setText(str(T_Ha)+"T/Ha")
 
