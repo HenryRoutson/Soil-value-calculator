@@ -17,6 +17,8 @@ from matplotlib.figure import Figure
 import Adviser
 import Files
 
+# pep8
+
 class MainWindow(QMainWindow):
     def __init__(self):
         super(MainWindow, self).__init__()
@@ -78,37 +80,25 @@ class MainWindow(QMainWindow):
             full_paths = QFileDialog.getOpenFileNames(self,'Open File')[0]
         for full_path in full_paths:
             name =  os.path.basename(full_path)
-            print(name)
             if re.search("IDEAL", name.upper()):
-                print("ideal")
                 self.UI.ideal_link = full_path
             elif re.search("SOIL", name.upper()):
-                print("soil")
                 self.UI.soil_link = full_path
             else:
-                print("other")
-                self.UI.sliders.append(full_path)
-        self.UI._update_graph()
+                self.UI.create_slider(full_path)
+        self.UI.update_values()
+        # self.UI.update_graph()
 
     def DragAndDrop(self):
         self.DragDrop = DragDrop()
         self.DragDrop.show()
 
-    def update_text_size(self):
-        pass
-    # for x in self.UI.sliders:
-    #     settextsize(self.text_size)
-    # self.UI.fig.rcParams.update({'font.size': self.text_size})
-
-    # not working
-    # shorten with signals
+    # use with signals
     def Text_Size_Up(self):
         self.text_size += 1
-        self.update_text_size()
 
     def Text_Size_Down(self):
         self.text_size += -1
-        self.update_text_size()
 
     def Light_Dark(self):
         if self.color == "white":
@@ -123,90 +113,104 @@ class MainWindow(QMainWindow):
         self.UI.setStyleSheet("QWidget { background-color: "+self.color+" }")
         self.UI.ax.set_facecolor(self.color)
         self.UI.fig.set_facecolor(self.color)
-        self.UI._update_graph()
+        self.UI.update_graph()
 
 class UI(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
-
         # inherit
 
-        'Layouts'
-        # MainLayout
         Layout = QHBoxLayout()
         self.setLayout(Layout)
-        # Sublayouts
 
-        "Add Slider"
+        self.slider_layout = QVBoxLayout()
+        Layout.addLayout(self.slider_layout)
 
-        self.sliders = []
+        self.sliders = QHBoxLayout()
+        self.buttons = QHBoxLayout()
+        self.values = QHBoxLayout()
 
-        # not working dynamically
-        # remove exec
-        # use as subclass
-        def slider(self,name,color):
-            SliderLayout = QVBoxLayout()
-            Layout.addLayout(SliderLayout)
-            exec("self."+name+" = QSlider(Qt.Vertical)")
-            # set color
-            # max/10**6
-            exec("self."+name+".setMaximum(50000)")
-            exec("self."+name+".setValue(0)")
-            exec("self."+name+".setMinimum(0)")
-            exec("self."+name+".valueChanged.connect(self._update_graph)")
-            exec("self."+name+".setTickPosition(QSlider.TicksBelow)")
-            exec("SliderLayout.addWidget(self."+name+")")
-            SliderLayout.addWidget(QLabel(name))
-            self.valueWidget = QLabel("0")
-            SliderLayout.addWidget(self.valueWidget)
-            # update graph
+        self.slider_layout.addLayout(self.sliders)
+        self.slider_layout.addLayout(self.buttons)
+        self.slider_layout.addLayout(self.values)
 
-        slider(self,"Compost","lightBlue")
+        self.sliderLinks = []
 
-        GraphLayout  = QVBoxLayout()
-        Layout.addLayout(GraphLayout)
+        self.graph  = QVBoxLayout()
+        Layout.addLayout(self.graph)
 
         "Graph"
         self.fig = Figure()
         canvas = FigureCanvas(self.fig)
-        GraphLayout.addWidget(canvas)
+        self.graph.addWidget(canvas)
 
         # optional
         toolbar = NavigationToolbar2QT(canvas, self)
-        GraphLayout.addWidget(toolbar)
+        self.graph.addWidget(toolbar)
 
         self.ax = canvas.figure.subplots()
         # avoid default
         self.soil_link = r"ExcelFiles\Soil N.Cole Little.xlsx"
         self.ideal_link = r"C:\Users\henryro\OneDrive - Ballarat Grammar School\2019 Software\Sat\ExcelFiles\Ideal.xlsx"
-        self._update_graph()
+        self.update_values()
+        self.update_graph()
 
-    def _update_graph(self):
+    def create_slider(self,path):
+        self.sliderLinks.append(path)
+        slider = QSlider(Qt.Vertical)
+        # slider.color
+        slider.setMaximum(50000) # max/10**6
+        slider.setValue(0)
+        slider.setMinimum(0)
+        slider.valueChanged.connect(self.update_graph)
+        slider.setTickPosition(QSlider.TicksBelow)
+        self.sliders.addWidget(slider) # slider
+        button = QPushButton()
+        name = os.path.basename(path).replace(".xlsx","")
+        button.setText(name)
+        button.clicked.connect(lambda: self.delete_slider(len(self.sliderLinks)-1))
+        self.buttons.addWidget(button) # button
+        self.values.addWidget(QLabel("0 T/Ha")) # value
+
+    def delete_slider(self, index):
+        self.sliderLinks.remove(self.sliderLinks[index])
+        self.sliders.itemAt(index).widget().deleteLater()
+        self.buttons.itemAt(index).widget().deleteLater()
+        self.values.itemAt(index).widget().deleteLater()
+
+    # remove files.run from update graph
+    def update_values(self):
+        self.soilValues, self.names = Files.run(self.soil_link)
+        self.IdealValues, self.names = Files.run(self.ideal_link)
+        self.file_values = []
+        for x in self.sliderLinks:
+            print(x)
+            self.file_values.append(Files.run(x)[0])
+
+    def update_graph(self):
         self.ax.clear()
-
-        # solid
-        SoilValues, names = Files.run(self.soil_link)
-        IdealValues, names = Files.run(self.ideal_link)
-        Natural = np.arange(len(names))
-        self.ax.bar(Natural, SoilValues, color = "grey")
-
-        # for x in range
-        # color = bar and slider
-        # tonnes per hactare
         
-        full_path = r"ExcelFiles\Compost Geelong Sample.xlsx"
-        values, names = Files.run(full_path)
-        # T/Ha
-        self.valueWidget.setText(str(round(1330*self.Compost.value()/10**6,1)))
-        self.ax.bar(Natural, values*self.Compost.value()/10**6, bottom = SoilValues)
+        # solid
+        xs = np.arange(len(self.names))
+        self.ax.bar(xs, self.soilValues, color = "grey")
+        values_sum = np.array(self.soilValues)
+        
+        for index in range(len(self.sliderLinks)):
+            # color = bar and slider
+            slider_value = self.sliders.itemAt(index).widget().value()
+            ys = np.array(self.file_values[index]*slider_value/10**6)
+            self.ax.bar(xs, ys, bottom = values_sum)
+            values_sum += ys
+
+            T_Ha = round(1330*slider_value/10**6,0)
+            self.values.itemAt(index).widget().setText(str(T_Ha)+"T/Ha")
 
         # outline
-        
-        self.ax.bar(Natural, IdealValues*4, facecolor="None", edgecolor='red', linewidth=0.5)
-        self.ax.bar(Natural, IdealValues, facecolor="None", edgecolor='green', linewidth=0.5)
+        self.ax.bar(xs, self.IdealValues*4, facecolor="None", edgecolor='red', linewidth=0.5)
+        self.ax.bar(xs, self.IdealValues, facecolor="None", edgecolor='green', linewidth=0.5)
 
-        self.ax.set_xticks(Natural)
-        self.ax.set_xticklabels(names)
+        self.ax.set_xticks(xs)
+        self.ax.set_xticklabels(self.names)
         self.fig.tight_layout()
         self.ax.figure.canvas.draw()
 
