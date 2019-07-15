@@ -99,6 +99,7 @@ class MainWindow(QMainWindow):
     def Text_Size_Down(self):
         self.text_size += -1
 
+    # doesnt work with blank axis
     def Light_Dark(self):
         if self.color == "white":
             self.color = "#3D3D3D"
@@ -150,17 +151,18 @@ class UI(QWidget):
         self.ax = canvas.figure.subplots()
         self.soil_link = r""
         self.ideal_link = r""
+        self.sliderTicks = 10**3
         self.update_values()
 
     def create_slider(self,path):
         # avoids duplicates
         for x in self.sliderLinks:
             if path == x:
-                return Nones
+                return None
         self.sliderLinks.append(path)
         slider = QSlider(Qt.Vertical)
         # slider.color
-        slider.setMaximum(50000) # max/10**6
+        slider.setMaximum(5/100 * self.sliderTicks)
         slider.setValue(0)
         slider.setMinimum(0)
         slider.valueChanged.connect(self.update_graph)
@@ -199,6 +201,8 @@ class UI(QWidget):
 
     def update_graph(self):
         try:
+            # Sliders.remove()
+            # del Sliders
             self.ax.clear()
             
             # solid
@@ -209,15 +213,15 @@ class UI(QWidget):
             for index in range(len(self.sliderLinks)):
                 # color = bar and slider
                 slider_value = self.sliders.itemAt(index).widget().value()
-                ys = np.array(self.file_values[index]*slider_value/10**6)
-                self.ax.bar(xs, ys, bottom = values_sum)
+                ys = np.array(self.file_values[index]*slider_value/self.sliderTicks)
+                Sliders = self.ax.bar(xs, ys, bottom = values_sum)
                 values_sum += ys
-                T_Ha = round(1330*slider_value/10**6,1)
+                T_Ha = round(1330*slider_value/self.sliderTicks,1)
                 self.values.itemAt(index).widget().setText(str(T_Ha)+"T/Ha")
 
             # outline
             self.ax.bar(xs, self.IdealValues, facecolor="None", edgecolor='green', linewidth=0.5)
-            self.ax.bar(xs, self.IdealValues*4, facecolor="None", edgecolor='red', linewidth=0.5)
+            OverLoad = self.ax.bar(xs, self.IdealValues*4, facecolor="None", edgecolor='red', linewidth=0.5)
             
             self.ax.set_xticks(xs)
             self.ax.set_xticklabels(self.names)
