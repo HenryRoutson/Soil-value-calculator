@@ -201,8 +201,12 @@ class UI(QWidget):
     def update_graph(self):
         # 0.2s execution time
         # avoid rerendering everything
+        # try multithreading
+        start = time.time()
+        print()
         try:      
-            self.ax.clear()
+            self.ax.clear() # 0.05
+            print(time.time() - start)
             # solid
             xs = np.arange(len(self.names))
             self.ax.bar(xs, self.soilValues, color = "grey")
@@ -217,16 +221,22 @@ class UI(QWidget):
                 values_sum += ys
                 T_Ha = round(1330*slider_value/self.sliderTicks,1)
                 self.values.itemAt(index).widget().setText(str(T_Ha)+"T/Ha")
-
+            print(time.time() - start) # 0.1
             # outline
             # non priority bars - dont need to be in frame
+            # 0.6
             self.ax.bar(xs, self.IdealValues, facecolor="None", edgecolor='green')
             self.ax.bar(xs, self.MaxValues, facecolor="None", edgecolor='red')
-            
+            print(time.time() - start)
             self.ax.set_xticks(xs)
             self.ax.set_xticklabels(self.names)
-            self.fig.tight_layout()
-            self.ax.figure.canvas.draw()
+            
+            print(time.time() - start)
+            self.fig.tight_layout() # 0.5
+            print(time.time() - start)
+            self.ax.figure.canvas.draw() # 0.5
+            print(time.time() - start)
+
         except:
             pass
 
