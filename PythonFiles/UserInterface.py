@@ -4,6 +4,7 @@ import os
 import sys
 import re
 import numpy as np
+import time
 
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
@@ -213,7 +214,7 @@ class UI(QWidget):
             for index in range(len(self.sliderLinks)):
                 # color = bar and slider
                 slider_value = self.sliders.itemAt(index).widget().value()
-                ys = np.array(self.file_values[index]*slider_value/self.sliderTicks)
+                ys = self.file_values[index]*slider_value/self.sliderTicks
                 Sliders = self.ax.bar(xs, ys, bottom = values_sum)
                 values_sum += ys
                 T_Ha = round(1330*slider_value/self.sliderTicks,1)
