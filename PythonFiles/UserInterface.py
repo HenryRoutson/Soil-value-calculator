@@ -87,7 +87,7 @@ class MainWindow(QMainWindow):
                 self.UI.soil_link = full_path
             else:
                 self.UI.create_slider(full_path)
-        self.UI.update_values()
+        self.UI.update_graph_values()
 
     def DragAndDrop(self):
         self.DragDrop = DragDrop()
@@ -114,7 +114,7 @@ class MainWindow(QMainWindow):
         self.UI.setStyleSheet("QWidget { background-color: "+self.color+" }")
         self.UI.ax.set_facecolor(self.color)
         self.UI.fig.set_facecolor(self.color)
-        self.UI.update_values()
+        self.UI.update_graph_values()
 
 class UI(QWidget):
     def __init__(self, parent=None):
@@ -152,8 +152,8 @@ class UI(QWidget):
         self.ax = canvas.figure.subplots()
         self.soil_link = r""
         self.ideal_link = r""
-        self.sliderTicks = 10**3
-        self.update_values()
+        self.sliderTicks = 10**4
+        self.update_graph_values()
 
     def create_slider(self,path):
         # avoids duplicates
@@ -181,48 +181,47 @@ class UI(QWidget):
         self.sliders.itemAt(index).widget().deleteLater()
         self.buttons.itemAt(index).widget().deleteLater()
         self.values.itemAt(index).widget().deleteLater()
-        self.update_values()
+        self.update_graph_values()
 
-    def update_values(self):
+    def update_graph_values(self):
         try:
             self.soilValues, self.names = Files.run(self.soil_link)
         except:
             pass
         try:
             self.IdealValues, self.names = Files.run(self.ideal_link)
+            self.MaxValues = self.IdealValues*4
         except:
             pass
         self.file_values = []
         for x in self.sliderLinks:
             self.file_values.append(Files.run(x)[0])
-        try:
-            self.update_graph()
-        except:
-            pass
+        self.update_graph()
 
     def update_graph(self):
-        try:
-            # Sliders.remove()
-            # del Sliders
+        # 0.2s execution time
+        # avoid rerendering everything
+        try:      
             self.ax.clear()
-            
             # solid
             xs = np.arange(len(self.names))
             self.ax.bar(xs, self.soilValues, color = "grey")
-            values_sum = np.array(self.soilValues)
-            
+            # aviod adding
+            values_sum = 0
+            values_sum += self.soilValues
             for index in range(len(self.sliderLinks)):
-                # color = bar and slider
+                # color -> bar and slider
                 slider_value = self.sliders.itemAt(index).widget().value()
                 ys = self.file_values[index]*slider_value/self.sliderTicks
-                Sliders = self.ax.bar(xs, ys, bottom = values_sum)
+                self.ax.bar(xs, ys, bottom = values_sum)
                 values_sum += ys
                 T_Ha = round(1330*slider_value/self.sliderTicks,1)
                 self.values.itemAt(index).widget().setText(str(T_Ha)+"T/Ha")
 
             # outline
-            self.ax.bar(xs, self.IdealValues, facecolor="None", edgecolor='green', linewidth=0.5)
-            OverLoad = self.ax.bar(xs, self.IdealValues*4, facecolor="None", edgecolor='red', linewidth=0.5)
+            # non priority bars - dont need to be in frame
+            self.ax.bar(xs, self.IdealValues, facecolor="None", edgecolor='green')
+            self.ax.bar(xs, self.MaxValues, facecolor="None", edgecolor='red')
             
             self.ax.set_xticks(xs)
             self.ax.set_xticklabels(self.names)
