@@ -13,6 +13,7 @@ from PyQt5.QtGui import *
 from matplotlib.backends.qt_compat import QtCore, QtWidgets, is_pyqt5
 from matplotlib.backends.backend_qt5agg import *
 from matplotlib.figure import Figure
+from matplotlib.animation import FuncAnimation
 
 # modules
 import Adviser
@@ -142,6 +143,7 @@ class UI(QWidget):
 
         "Graph"
         self.fig = Figure()
+        self.fig.set_tight_layout(True)
         canvas = FigureCanvas(self.fig)
         self.graph.addWidget(canvas)
 
@@ -154,6 +156,7 @@ class UI(QWidget):
         self.ideal_link = r""
         self.sliderTicks = 10**4
         self.update_graph_values()
+        # FuncAnimation(self.fig, update_graph)
 
     def create_slider(self,path):
         # avoids duplicates
@@ -184,13 +187,13 @@ class UI(QWidget):
         self.update_graph_values()
 
     def update_graph_values(self):
+        # if
         try:
             self.soilValues, self.names = Files.run(self.soil_link)
         except:
             pass
         try:
             self.IdealValues, self.names = Files.run(self.ideal_link)
-            self.MaxValues = self.IdealValues*4
         except:
             pass
         self.file_values = []
@@ -199,14 +202,10 @@ class UI(QWidget):
         self.update_graph()
 
     def update_graph(self):
-        # 0.2s execution time
-        # avoid rerendering everything
-        # try multithreading
-        start = time.time()
-        print()
+        # use animation
+        # combine with values
         try:      
-            self.ax.clear() # 0.05
-            print(time.time() - start)
+            self.ax.clear()
             # solid
             xs = np.arange(len(self.names))
             self.ax.bar(xs, self.soilValues, color = "grey")
@@ -221,22 +220,13 @@ class UI(QWidget):
                 values_sum += ys
                 T_Ha = round(1330*slider_value/self.sliderTicks,1)
                 self.values.itemAt(index).widget().setText(str(T_Ha)+"T/Ha")
-            print(time.time() - start) # 0.1
             # outline
             # non priority bars - dont need to be in frame
-            # 0.6
             self.ax.bar(xs, self.IdealValues, facecolor="None", edgecolor='green')
-            self.ax.bar(xs, self.MaxValues, facecolor="None", edgecolor='red')
-            print(time.time() - start)
+            self.ax.bar(xs, self.IdealValues*4, facecolor="None", edgecolor='red')
             self.ax.set_xticks(xs)
             self.ax.set_xticklabels(self.names)
-            
-            print(time.time() - start)
-            self.fig.tight_layout() # 0.5
-            print(time.time() - start)
-            self.ax.figure.canvas.draw() # 0.5
-            print(time.time() - start)
-
+            self.ax.figure.canvas.draw()
         except:
             pass
 
