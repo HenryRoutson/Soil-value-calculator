@@ -158,34 +158,6 @@ class UI(QWidget):
         self.update_graph_values()
         # FuncAnimation(self.fig, update_graph)
 
-    def create_slider(self,path):
-        # avoids duplicates
-        for x in self.sliderLinks:
-            if path == x:
-                return None
-        self.sliderLinks.append(path)
-        slider = QSlider(Qt.Vertical)
-        # slider.color
-        slider.setMaximum(5/100 * self.sliderTicks)
-        slider.setValue(0)
-        slider.setMinimum(0)
-        slider.valueChanged.connect(self.update_graph)
-        #slider.setTickPosition(QSlider.TicksBelow)
-        self.sliders.addWidget(slider) # slider
-        button = QPushButton()
-        name = os.path.basename(path).replace(".xlsx","")
-        button.setText(name)
-        button.clicked.connect(lambda: self.delete_slider(len(self.sliderLinks)-1))
-        self.buttons.addWidget(button) # button
-        self.values.addWidget(QLabel("0 T/Ha")) # value
-
-    def delete_slider(self, index):
-        self.sliderLinks.remove(self.sliderLinks[index])
-        self.sliders.itemAt(index).widget().deleteLater()
-        self.buttons.itemAt(index).widget().deleteLater()
-        self.values.itemAt(index).widget().deleteLater()
-        self.update_graph_values()
-
     def update_graph_values(self):
         # if
         try:
@@ -229,6 +201,34 @@ class UI(QWidget):
             self.ax.figure.canvas.draw()
         except:
             pass
+
+    def create_slider(self,path):
+        # avoids duplicates
+        for x in self.sliderLinks:
+            if path == x:
+                return None
+        self.sliderLinks.append(path)
+        slider = QSlider(Qt.Vertical)
+        # slider.color
+        slider.setMaximum(5/100 * self.sliderTicks)
+        slider.setValue(0)
+        slider.setMinimum(0)
+        slider.valueChanged.connect(self.update_graph)
+        #slider.setTickPosition(QSlider.TicksBelow)
+        self.sliders.addWidget(slider) # slider
+        button = QPushButton()
+        name = os.path.basename(path).replace(".xlsx","")
+        button.setText(name)
+        button.clicked.connect(lambda: self.delete_slider(len(self.sliderLinks)-1))
+        self.buttons.addWidget(button) # button
+        self.values.addWidget(QLabel("0 T/Ha")) # value
+
+    def delete_slider(self, index):
+        self.sliderLinks.remove(self.sliderLinks[index])
+        self.sliders.itemAt(index).widget().deleteLater()
+        self.buttons.itemAt(index).widget().deleteLater()
+        self.values.itemAt(index).widget().deleteLater()
+        self.update_graph_values()
 
 class DragDrop(QLineEdit):
     def __init__(self):

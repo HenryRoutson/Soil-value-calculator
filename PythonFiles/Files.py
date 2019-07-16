@@ -1,5 +1,8 @@
 def run(path):
 
+        if path == "":
+                return [] , []
+
         import numpy as np
         from xlutils.save import save
         import xlrd
@@ -20,7 +23,8 @@ def run(path):
         G_SQM = 133000
         for x in range(6,19):
                 Elements.append(File.cell(x, 1).value)
-                # To percent
+
+                # To percent by weight
                 measure = File.cell(x, 3).value
                 value = TryFloat(File.cell(x, 4).value)
                 if measure == "mg/kg":
