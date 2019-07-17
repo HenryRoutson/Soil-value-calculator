@@ -26,8 +26,9 @@ class MainWindow(QMainWindow):
         super(MainWindow, self).__init__()
 
         # globals
-        self.color = "black"
-        self.text_size = 14
+        self.color = "black" # opposite
+        self.text_size = 10
+        self.font = QFont()
 
         # param
         self.UI = UI(self)
@@ -58,13 +59,13 @@ class MainWindow(QMainWindow):
         # Settings menu
         SettingsMenu = MainMenu.addMenu('Settings')
 
-        Text_Size_Up = QAction("Text Size Up",self)
-        Text_Size_Up.triggered.connect(self.Text_Size_Up)
-        SettingsMenu.addAction(Text_Size_Up)
+        text_size_Up = QAction("Text Size Up",self)
+        text_size_Up.triggered.connect(self.change_text_size)
+        SettingsMenu.addAction(text_size_Up)
 
-        Text_Size_Down = QAction("Text Size Down",self)
-        Text_Size_Up.triggered.connect(self.Text_Size_Down)
-        SettingsMenu.addAction(Text_Size_Down)
+        text_size_Down = QAction("Text Size Down",self)
+        text_size_Down.triggered.connect(self.change_text_size)
+        SettingsMenu.addAction(text_size_Down)
 
         Light_Dark = QAction("Light/Dark",self)
         Light_Dark.triggered.connect(self.Light_Dark)
@@ -88,18 +89,20 @@ class MainWindow(QMainWindow):
                 self.UI.soil_link = full_path
             else:
                 self.UI.create_slider(full_path)
-        self.UI.update_graph_values()
+        self.UI.update_graph()
 
     def DragAndDrop(self):
         self.DragDrop = DragDrop()
-        self.DragDrop.show()
 
-    # use with signals
-    def Text_Size_Up(self):
-        self.text_size += 1
-
-    def Text_Size_Down(self):
-        self.text_size += -1
+    def change_text_size(self):
+        change = 1
+        if self.text_size != change:
+            if self.sender().text() == "Text Size Up":
+                self.text_size += change
+            else:
+                self.text_size += -change
+        self.UI.setStyleSheet("font: "+str(self.text_size)+"pt")
+        # matplotlib
 
     # doesnt work with blank axis
     def Light_Dark(self):
@@ -115,18 +118,23 @@ class MainWindow(QMainWindow):
         self.UI.setStyleSheet("QWidget { background-color: "+self.color+" }")
         self.UI.ax.set_facecolor(self.color)
         self.UI.fig.set_facecolor(self.color)
-        self.UI.update_graph_values()
+        self.UI.update_graph()
 
 class UI(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
         # inherit
 
-        Layout = QHBoxLayout()
-        self.setLayout(Layout)
+        self.Layout = QHBoxLayout()
+        self.setLayout(self.Layout)
 
+        self.slider_init()
+        self.graph_init()
+        self.context_menu_init()
+
+    def slider_init(self):
         self.slider_layout = QVBoxLayout()
-        Layout.addLayout(self.slider_layout)
+        self.Layout.addLayout(self.slider_layout)
 
         self.sliders = QHBoxLayout()
         self.buttons = QHBoxLayout()
@@ -138,8 +146,37 @@ class UI(QWidget):
 
         self.sliderLinks = []
 
+    def create_slider(self,path):
+        # avoids duplicates
+        for x in self.sliderLinks:
+            if path == x:
+                return None
+        self.sliderLinks.append(path)
+        slider = QSlider(Qt.Vertical)
+        # slider.color
+        slider.setMaximum(5/100 * self.sliderTicks)
+        slider.setValue(0)
+        slider.setMinimum(0)
+        slider.valueChanged.connect(self.update_graph) # remove after animation
+        #slider.setTickPosition(QSlider.TicksBelow)
+        self.sliders.addWidget(slider) # slider
+        button = QPushButton()
+        name = os.path.basename(path).replace(".xlsx","")
+        button.setText(name)
+        button.clicked.connect(lambda: self.delete_slider(len(self.sliderLinks)-1))
+        self.buttons.addWidget(button) # button
+        self.values.addWidget(QLabel("0 T/Ha")) # value
+
+    def delete_slider(self, index):
+        self.sliderLinks.remove(self.sliderLinks[index])
+        self.sliders.itemAt(index).widget().deleteLater()
+        self.buttons.itemAt(index).widget().deleteLater()
+        self.values.itemAt(index).widget().deleteLater()
+        self.update_graph()
+
+    def graph_init(self):
         self.graph  = QVBoxLayout()
-        Layout.addLayout(self.graph)
+        self.Layout.addLayout(self.graph)
 
         "Graph"
         self.fig = Figure()
@@ -155,10 +192,10 @@ class UI(QWidget):
         self.soil_link = r""
         self.ideal_link = r""
         self.sliderTicks = 10**4
-        self.update_graph_values()
+        self.update_graph()
         # FuncAnimation(self.fig, update_graph)
 
-    def update_graph_values(self):
+    def update_graph(self):
         # if
         try:
             self.soilValues, self.names = Files.run(self.soil_link)
@@ -171,11 +208,7 @@ class UI(QWidget):
         self.file_values = []
         for x in self.sliderLinks:
             self.file_values.append(Files.run(x)[0])
-        self.update_graph()
-
-    def update_graph(self):
         # use animation
-        # combine with values
         try:      
             self.ax.clear()
             # solid
@@ -202,33 +235,8 @@ class UI(QWidget):
         except:
             pass
 
-    def create_slider(self,path):
-        # avoids duplicates
-        for x in self.sliderLinks:
-            if path == x:
-                return None
-        self.sliderLinks.append(path)
-        slider = QSlider(Qt.Vertical)
-        # slider.color
-        slider.setMaximum(5/100 * self.sliderTicks)
-        slider.setValue(0)
-        slider.setMinimum(0)
-        slider.valueChanged.connect(self.update_graph)
-        #slider.setTickPosition(QSlider.TicksBelow)
-        self.sliders.addWidget(slider) # slider
-        button = QPushButton()
-        name = os.path.basename(path).replace(".xlsx","")
-        button.setText(name)
-        button.clicked.connect(lambda: self.delete_slider(len(self.sliderLinks)-1))
-        self.buttons.addWidget(button) # button
-        self.values.addWidget(QLabel("0 T/Ha")) # value
-
-    def delete_slider(self, index):
-        self.sliderLinks.remove(self.sliderLinks[index])
-        self.sliders.itemAt(index).widget().deleteLater()
-        self.buttons.itemAt(index).widget().deleteLater()
-        self.values.itemAt(index).widget().deleteLater()
-        self.update_graph_values()
+    def context_menu_init(self):
+        pass
 
 class DragDrop(QLineEdit):
     def __init__(self):
@@ -238,6 +246,7 @@ class DragDrop(QLineEdit):
         self.setStyleSheet("QWidget { background-color: "+MainWindow.color+" }")
         self.setText("Drag and drop here")
         self.setDragEnabled(True)
+        self.show()
 
     def dragEnterEvent(self, event):
         data = event.mimeData()
