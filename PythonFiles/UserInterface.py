@@ -5,7 +5,6 @@ import sys
 import re
 import numpy as np
 import time
-from faker import Factory
 
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
@@ -94,6 +93,7 @@ class MainWindow(QMainWindow):
 
     def DragAndDrop(self):
         self.DragDrop = DragDrop()
+        self.UI.delete_slider(0)
 
     def change_text_size(self):
         change = 1
@@ -147,18 +147,27 @@ class UI(QWidget):
 
         self.sliderLinks = []
         self.colors = []
+        self.color = np.array([0, 255, 255])
 
     def create_slider(self,path):
         # avoids duplicates
         for x in self.sliderLinks:
             if path == x:
                 return None
-        fake = Factory.create()
-        color = fake.hex_color() # make colors clearer
+
         self.sliderLinks.append(path)
-        self.colors.append(color)
         slider = QSlider(Qt.Vertical)
-        slider.setStyleSheet("QSlider::handle:vertical {background-color: "+color+";}")
+        # doesnt always work
+        c = 30
+        self.color = self.color + np.array([-c,-c,c])
+        for x in range(len(self.color)):
+            self.color[x] = abs(self.color[x])
+            if self.color[x] > 255:
+                self.color[x] = np.random.randint(55, 255)
+        color_string = "#%02x%02x%02x" % tuple(self.color)
+        self.colors.append(color_string)
+        slider.setStyleSheet("QSlider::handle:vertical {background-color: "+color_string+";}")
+
         slider.setMaximum(5/100 * self.sliderTicks)
         slider.setValue(0)
         slider.setMinimum(0)
@@ -167,15 +176,18 @@ class UI(QWidget):
         button = QPushButton()
         name = os.path.basename(path).replace(".xlsx","")
         button.setText(name)
-        button.clicked.connect(lambda: self.delete_slider(len(self.sliderLinks)-1))
+        button.clicked.connect(lambda: self.delete_slider(button)) # not working
+        # print(len(self.sliderLinks)-1)
         self.buttons.addWidget(button) # button
         self.values.addWidget(QLabel("0 T/Ha")) # value
 
-    def delete_slider(self, index):
-        self.sliderLinks.remove(self.sliderLinks[index])
-        self.sliders.itemAt(index).widget().deleteLater()
-        self.buttons.itemAt(index).widget().deleteLater()
-        self.values.itemAt(index).widget().deleteLater()
+    def delete_slider(self, button):
+        index = self.buttons.indexOf(button)
+        self.buttons.itemAt(index).widget().setParent(None)
+        self.sliders.itemAt(index).widget().setParent(None)
+        self.values.itemAt(index).widget().setParent(None)
+        del self.sliderLinks[index]
+        del self.colors[index]
         self.update_graph()
 
     def graph_init(self):
@@ -200,7 +212,7 @@ class UI(QWidget):
         # FuncAnimation(self.fig, update_graph)
 
     def update_graph(self):
-        # if
+        # if avoids try
         try:
             self.soilValues, self.names = Files.run(self.soil_link)
         except:
@@ -213,31 +225,27 @@ class UI(QWidget):
         for x in self.sliderLinks:
             self.file_values.append(Files.run(x)[0])
         # use animation
-        try:      
-            self.ax.clear()
-            # solid
-            xs = np.arange(len(self.names))
-            self.ax.bar(xs, self.soilValues, color = "grey")
-            # aviod adding
-            values_sum = 0
-            values_sum += self.soilValues
-            for index in range(len(self.sliderLinks)):
-                # color -> bar and slider
-                slider_value = self.sliders.itemAt(index).widget().value()
-                ys = self.file_values[index]*slider_value/self.sliderTicks
-                self.ax.bar(xs, ys, bottom = values_sum, color=self.colors[index], edgecolor="black")
-                values_sum += ys
-                T_Ha = round(1330*slider_value/self.sliderTicks,1)
-                self.values.itemAt(index).widget().setText(str(T_Ha)+"T/Ha")
-            # outline
-            # non priority bars - dont need to be in frame
-            self.ax.bar(xs, self.IdealValues, facecolor="None", edgecolor='green') # out of frame
-            self.ax.bar(xs, self.IdealValues*4, facecolor="None", edgecolor='red') # out of frame
-            self.ax.set_xticks(xs)
-            self.ax.set_xticklabels(self.names)
-            self.ax.figure.canvas.draw()
-        except:
-            pass
+    
+        self.ax.clear()
+        # solid
+        xs = np.arange(len(self.names))
+        self.ax.bar(xs, self.soilValues, color = "#2A2E2F")
+
+        values_sum = self.soilValues
+        for index in range(self.sliders.count()):
+            # color -> bar and slider
+            slider_value = self.sliders.itemAt(index).widget().value()
+            ys = self.file_values[index]*slider_value/self.sliderTicks
+            self.ax.bar(xs, ys, bottom = values_sum, color=self.colors[index], edgecolor='black')
+            values_sum += ys
+            T_Ha = round(1330*slider_value/self.sliderTicks,1)
+            self.values.itemAt(index).widget().setText(str(T_Ha)+"T/Ha")
+
+        self.ax.bar(xs, self.IdealValues, facecolor="None", edgecolor='green') # out of frame
+        self.ax.bar(xs, self.IdealValues*4, facecolor="None", edgecolor='red') # out of frame
+        self.ax.set_xticks(xs)
+        self.ax.set_xticklabels(self.names)
+        self.ax.figure.canvas.draw()
 
     def context_menu_init(self):
         pass
@@ -265,14 +273,15 @@ class DragDrop(QLineEdit):
             full_paths = []
             for x in range(len(urls)):
                 url = str(urls[x].path())[1:]
-                if url[-5:].upper() == ".XLSX":
+                if url[-1*len(".XLSX"):].upper() == ".XLSX":
                     full_paths.append(url)
                 else:
                     print("This is not a .xlsx file")
             MainWindow.Open(full_paths)
+            # exit window
 
 if __name__=='__main__':
-    # close all windows after main
+    # close all windows after mains
     app = QApplication(sys.argv)
     MainWindow = MainWindow()
     MainWindow.show()
