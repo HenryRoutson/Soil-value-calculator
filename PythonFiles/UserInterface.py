@@ -5,6 +5,7 @@ import sys
 import re
 import numpy as np
 import time
+from faker import Factory
 
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
@@ -102,7 +103,7 @@ class MainWindow(QMainWindow):
             else:
                 self.text_size += -change
         self.UI.setStyleSheet("font: "+str(self.text_size)+"pt")
-        # matplotlib
+        # matplotlib.rc('font', size=self.text_size)
 
     # doesnt work with blank axis
     def Light_Dark(self):
@@ -145,20 +146,23 @@ class UI(QWidget):
         self.slider_layout.addLayout(self.values)
 
         self.sliderLinks = []
+        self.colors = []
 
     def create_slider(self,path):
         # avoids duplicates
         for x in self.sliderLinks:
             if path == x:
                 return None
+        fake = Factory.create()
+        color = fake.hex_color() # make colors clearer
         self.sliderLinks.append(path)
+        self.colors.append(color)
         slider = QSlider(Qt.Vertical)
-        # slider.color
+        slider.setStyleSheet("QSlider::handle:vertical {background-color: "+color+";}")
         slider.setMaximum(5/100 * self.sliderTicks)
         slider.setValue(0)
         slider.setMinimum(0)
         slider.valueChanged.connect(self.update_graph) # remove after animation
-        #slider.setTickPosition(QSlider.TicksBelow)
         self.sliders.addWidget(slider) # slider
         button = QPushButton()
         name = os.path.basename(path).replace(".xlsx","")
@@ -221,14 +225,14 @@ class UI(QWidget):
                 # color -> bar and slider
                 slider_value = self.sliders.itemAt(index).widget().value()
                 ys = self.file_values[index]*slider_value/self.sliderTicks
-                self.ax.bar(xs, ys, bottom = values_sum)
+                self.ax.bar(xs, ys, bottom = values_sum, color=self.colors[index], edgecolor="black")
                 values_sum += ys
                 T_Ha = round(1330*slider_value/self.sliderTicks,1)
                 self.values.itemAt(index).widget().setText(str(T_Ha)+"T/Ha")
             # outline
             # non priority bars - dont need to be in frame
-            self.ax.bar(xs, self.IdealValues, facecolor="None", edgecolor='green')
-            self.ax.bar(xs, self.IdealValues*4, facecolor="None", edgecolor='red')
+            self.ax.bar(xs, self.IdealValues, facecolor="None", edgecolor='green') # out of frame
+            self.ax.bar(xs, self.IdealValues*4, facecolor="None", edgecolor='red') # out of frame
             self.ax.set_xticks(xs)
             self.ax.set_xticklabels(self.names)
             self.ax.figure.canvas.draw()
@@ -260,8 +264,9 @@ class DragDrop(QLineEdit):
         if urls and urls[0].scheme() == 'file':
             full_paths = []
             for x in range(len(urls)):
-                if filepath[-5:].upper() == ".XLSX":
-                    full_paths.append(str(urls[x].path())[1:])
+                url = str(urls[x].path())[1:]
+                if url[-5:].upper() == ".XLSX":
+                    full_paths.append(url)
                 else:
                     print("This is not a .xlsx file")
             MainWindow.Open(full_paths)
