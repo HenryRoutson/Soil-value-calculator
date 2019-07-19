@@ -154,7 +154,7 @@ class UI(QWidget):
         self.sliderLinks.append(path)
         slider = QSlider(Qt.Vertical)
 
-        c = 15
+        c = 15 # use matplotlib colors
         low, high = 115, 185
         self.color = abs(self.color + np.array([c,0,c]))
         for x in range(len(self.color)):
@@ -217,9 +217,6 @@ class UI(QWidget):
             self.IdealValues, self.names = Files.run(self.ideal_link)
         except:
             pass
-        self.file_values = []
-        for x in self.sliderLinks:
-            self.file_values.append(Files.run(x)[0])
     
         self.ax.clear()
 
@@ -229,14 +226,14 @@ class UI(QWidget):
         values_sum = self.soilValues
         for index in range(self.sliders.count()):
             slider_value = self.sliders.itemAt(index).widget().value()
-            ys = self.file_values[index]*slider_value/self.sliderTicks
+            ys = Files.run(self.sliderLinks[index])[0]*slider_value/self.sliderTicks
             self.ax.bar(xs, ys, bottom=values_sum, color=self.colors[index], edgecolor='black')
             values_sum += ys
             T_Ha = round(1330*slider_value/self.sliderTicks,1)
             self.values.itemAt(index).widget().setText(str(T_Ha)+"T/Ha")
 
-        self.ax.bar(xs, self.IdealValues, facecolor="None", edgecolor='green') # out of frame
-        self.ax.bar(xs, self.IdealValues*4, facecolor="None", edgecolor='red') # out of frame
+        self.ax.bar(xs, self.IdealValues, facecolor="None", edgecolor='green') # want out of frame
+        self.ax.bar(xs, self.IdealValues*4, facecolor="None", edgecolor='red') # want out of frame
         self.ax.set_xticks(xs)
         self.ax.set_xticklabels(self.names)
         self.ax.figure.canvas.draw()
