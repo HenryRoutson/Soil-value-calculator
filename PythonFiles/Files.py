@@ -1,12 +1,12 @@
+import numpy as np
+from xlutils.save import save
+import xlrd
+import os
+
 def run(path):
 
         if path == "":
                 return [] , []
-
-        import numpy as np
-        from xlutils.save import save
-        import xlrd
-        import os
 
         File = xlrd.open_workbook(path)
         File = File.sheet_by_index(0)   

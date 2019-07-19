@@ -1,6 +1,6 @@
-def run(MainVector,CurrentPos,SubVectors):
+import numpy as np
 
-    import numpy as np
+def run(MainVector,CurrentPos,SubVectors): 
 
     """Create functions to be used"""
 
