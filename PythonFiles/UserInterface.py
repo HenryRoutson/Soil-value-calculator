@@ -4,7 +4,6 @@ import os
 import sys
 import re
 import numpy as np
-import time
 
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
@@ -27,8 +26,8 @@ class MainWindow(QMainWindow):
 
         # globals
         self.color = "black" # opposite
-        self.text_size = 10
         self.font = QFont()
+        self.text_size = 10
 
         # param
         self.UI = UI(self)
@@ -93,19 +92,17 @@ class MainWindow(QMainWindow):
 
     def DragAndDrop(self):
         self.DragDrop = DragDrop()
-        self.UI.delete_slider(0)
 
     def change_text_size(self):
         change = 1
-        if self.text_size != change:
-            if self.sender().text() == "Text Size Up":
-                self.text_size += change
-            else:
+        if self.sender().text() == "Text Size Up":
+            self.text_size += change
+        else:
+            if self.text_size>change:
                 self.text_size += -change
         self.UI.setStyleSheet("font: "+str(self.text_size)+"pt")
-        # matplotlib.rc('font', size=self.text_size)
+        # matplotlib
 
-    # doesnt work with blank axis
     def Light_Dark(self):
         if self.color == "white":
             self.color = "#3D3D3D"
@@ -147,23 +144,22 @@ class UI(QWidget):
 
         self.sliderLinks = []
         self.colors = []
-        self.color = np.array([0, 255, 255])
+        self.color = np.array([0, 0, 0])
 
     def create_slider(self,path):
-        # avoids duplicates
+
         for x in self.sliderLinks:
             if path == x:
                 return None
-
         self.sliderLinks.append(path)
         slider = QSlider(Qt.Vertical)
-        # doesnt always work
-        c = 30
-        self.color = self.color + np.array([-c,-c,c])
+
+        c = 15
+        low, high = 115, 185
+        self.color = abs(self.color + np.array([c,0,c]))
         for x in range(len(self.color)):
-            self.color[x] = abs(self.color[x])
-            if self.color[x] > 255:
-                self.color[x] = np.random.randint(55, 255)
+            if self.color[x] > low or self.color[x] < high:
+                self.color[x] = np.random.randint(low, high)
         color_string = "#%02x%02x%02x" % tuple(self.color)
         self.colors.append(color_string)
         slider.setStyleSheet("QSlider::handle:vertical {background-color: "+color_string+";}")
@@ -172,12 +168,13 @@ class UI(QWidget):
         slider.setValue(0)
         slider.setMinimum(0)
         slider.valueChanged.connect(self.update_graph) # remove after animation
-        self.sliders.addWidget(slider) # slider
+        
         button = QPushButton()
         name = os.path.basename(path).replace(".xlsx","")
         button.setText(name)
-        button.clicked.connect(lambda: self.delete_slider(button)) # not working
-        # print(len(self.sliderLinks)-1)
+        button.clicked.connect(lambda: self.delete_slider(button)) 
+        
+        self.sliders.addWidget(slider) # slider
         self.buttons.addWidget(button) # button
         self.values.addWidget(QLabel("0 T/Ha")) # value
 
@@ -194,7 +191,6 @@ class UI(QWidget):
         self.graph  = QVBoxLayout()
         self.Layout.addLayout(self.graph)
 
-        "Graph"
         self.fig = Figure()
         self.fig.set_tight_layout(True)
         canvas = FigureCanvas(self.fig)
@@ -211,8 +207,8 @@ class UI(QWidget):
         self.update_graph()
         # FuncAnimation(self.fig, update_graph)
 
-    def update_graph(self):
-        # if avoids try
+    def update_graph(self):  # use animation
+        # if avoids trys
         try:
             self.soilValues, self.names = Files.run(self.soil_link)
         except:
@@ -224,19 +220,17 @@ class UI(QWidget):
         self.file_values = []
         for x in self.sliderLinks:
             self.file_values.append(Files.run(x)[0])
-        # use animation
     
         self.ax.clear()
-        # solid
+
         xs = np.arange(len(self.names))
-        self.ax.bar(xs, self.soilValues, color = "#2A2E2F")
+        self.ax.bar(xs, self.soilValues, color = "black")
 
         values_sum = self.soilValues
         for index in range(self.sliders.count()):
-            # color -> bar and slider
             slider_value = self.sliders.itemAt(index).widget().value()
             ys = self.file_values[index]*slider_value/self.sliderTicks
-            self.ax.bar(xs, ys, bottom = values_sum, color=self.colors[index], edgecolor='black')
+            self.ax.bar(xs, ys, bottom=values_sum, color=self.colors[index], edgecolor='black')
             values_sum += ys
             T_Ha = round(1330*slider_value/self.sliderTicks,1)
             self.values.itemAt(index).widget().setText(str(T_Ha)+"T/Ha")
