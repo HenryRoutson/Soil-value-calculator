@@ -102,7 +102,8 @@ class MainWindow(QMainWindow):
             if self.text_size>change:
                 self.text_size += -change
         self.UI.setStyleSheet("font: "+str(self.text_size)+"pt")
-        # matplotlib
+        rcParams.update({'font.size': self.text_size})
+        self.UI.update_graph()
 
     def Light_Dark(self):
         if self.color == "white":
@@ -175,7 +176,7 @@ class UI(QWidget):
         slider.setMinimum(0)
         slider.valueChanged.connect(self.update_graph) # remove after animation
         
-        button = QPushButton()
+        button = QPushButton() # rotate
         name = os.path.basename(path).replace(".xlsx","")
         button.setText(name)
         button.clicked.connect(lambda: self.delete_slider(button)) 
