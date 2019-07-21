@@ -4,6 +4,7 @@ import os
 import sys
 import re
 import numpy as np
+from pylab import *
 
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
@@ -18,7 +19,7 @@ from matplotlib.animation import FuncAnimation
 import Adviser
 import Files
 
-# pep8
+# pep8, 
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -121,7 +122,6 @@ class MainWindow(QMainWindow):
 class UI(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
-        # inherit
 
         self.Layout = QHBoxLayout()
         self.setLayout(self.Layout)
@@ -143,26 +143,32 @@ class UI(QWidget):
         self.slider_layout.addLayout(self.values)
 
         self.sliderLinks = []
+        self.color_options = []
         self.colors = []
-        self.color = np.array([0, 0, 0])
+        self.color_pos = 0
+    
+        # viridis for color blind
+        cmap = cm.get_cmap('viridis', 8)
+        for i in range(cmap.N):
+            rgb = cmap(i)[:3]
+            self.color_options.append(matplotlib.colors.rgb2hex(rgb))
 
     def create_slider(self,path):
 
         for x in self.sliderLinks:
             if path == x:
                 return None
+            
         self.sliderLinks.append(path)
+        # QProxyStyle QJumpSlider
         slider = QSlider(Qt.Vertical)
 
-        c = 15 # use matplotlib colors
-        low, high = 115, 185
-        self.color = abs(self.color + np.array([c,0,c]))
-        for x in range(len(self.color)):
-            if self.color[x] > low or self.color[x] < high:
-                self.color[x] = np.random.randint(low, high)
-        color_string = "#%02x%02x%02x" % tuple(self.color)
-        self.colors.append(color_string)
-        slider.setStyleSheet("QSlider::handle:vertical {background-color: "+color_string+";}")
+        hex_color = self.color_options[self.color_pos]
+        if self.color_pos == len(self.color_options):
+            self.color_pos = 0
+        self.color_pos += 1
+        self.colors.append(hex_color)
+        slider.setStyleSheet("QSlider::handle:vertical {background-color: "+hex_color+";}")
 
         slider.setMaximum(5/100 * self.sliderTicks)
         slider.setValue(0)
@@ -188,6 +194,7 @@ class UI(QWidget):
         self.update_graph()
 
     def graph_init(self):
+        # fix zoom 
         self.graph  = QVBoxLayout()
         self.Layout.addLayout(self.graph)
 
@@ -208,7 +215,7 @@ class UI(QWidget):
         # FuncAnimation(self.fig, update_graph)
 
     def update_graph(self):  # use animation
-        # if avoids trys
+        # if avoids try but adds color bug
         try:
             self.soilValues, self.names = Files.run(self.soil_link)
         except:
@@ -221,7 +228,7 @@ class UI(QWidget):
         self.ax.clear()
 
         xs = np.arange(len(self.names))
-        self.ax.bar(xs, self.soilValues, color = "black")
+        self.ax.bar(xs, self.soilValues, color = "grey")
 
         values_sum = self.soilValues
         for index in range(self.sliders.count()):
