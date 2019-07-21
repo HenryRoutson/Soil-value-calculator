@@ -78,6 +78,12 @@ class MainWindow(QMainWindow):
         Documentation.triggered.connect(lambda: os.system('start Documentation'))
         HelpMenu.addAction(Documentation)
 
+    def refresh(self):
+        self.UI.update_graph()
+        self.UI.setStyleSheet("font: "+str(self.text_size)+"pt")
+        rcParams.update({'font.size': self.text_size})
+        self.UI.update_graph()
+
     def Open(self, full_paths):
         if full_paths == False:
             full_paths = QFileDialog.getOpenFileNames(self,'Open File')[0]
@@ -89,21 +95,23 @@ class MainWindow(QMainWindow):
                 self.UI.soil_link = full_path
             else:
                 self.UI.create_slider(full_path)
-        self.UI.update_graph()
+        self.refresh()
 
     def DragAndDrop(self):
         self.DragDrop = DragDrop()
+        self.refresh()
 
     def change_text_size(self):
         change = 1
-        if self.sender().text() == "Text Size Up":
-            self.text_size += change
-        else:
-            if self.text_size>change:
-                self.text_size += -change
-        self.UI.setStyleSheet("font: "+str(self.text_size)+"pt")
-        rcParams.update({'font.size': self.text_size})
-        self.UI.update_graph()
+        try:
+            if self.sender().text() == "Text Size Up":
+                self.text_size += change
+            elif self.sender().text() == "Text Size Down":
+                if self.text_size>change:
+                    self.text_size += -change
+        except:
+            pass
+        self.refresh()
 
     def Light_Dark(self):
         if self.color == "white":
@@ -118,7 +126,7 @@ class MainWindow(QMainWindow):
         self.UI.setStyleSheet("QWidget { background-color: "+self.color+" }")
         self.UI.ax.set_facecolor(self.color)
         self.UI.fig.set_facecolor(self.color)
-        self.UI.update_graph()
+        self.refresh()
 
 class UI(QWidget):
     def __init__(self, parent=None):
@@ -164,9 +172,9 @@ class UI(QWidget):
         # QProxyStyle QJumpSlider
         slider = QSlider(Qt.Vertical)
 
-        hex_color = self.color_options[self.color_pos]
         if self.color_pos == len(self.color_options):
             self.color_pos = 0
+        hex_color = self.color_options[self.color_pos]
         self.color_pos += 1
         self.colors.append(hex_color)
         slider.setStyleSheet("QSlider::handle:vertical {background-color: "+hex_color+";}")
