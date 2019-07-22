@@ -19,7 +19,7 @@ from matplotlib.animation import FuncAnimation
 import Adviser
 import Files
 
-# pep8, 
+# pep8 http://pep8online.com/checkresult
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -28,7 +28,7 @@ class MainWindow(QMainWindow):
         # globals
         self.color = "black" # opposite
         self.font = QFont()
-        self.text_size = 10
+        self.text_size = 9
 
         # param
         self.UI = UI(self)
@@ -79,7 +79,6 @@ class MainWindow(QMainWindow):
         HelpMenu.addAction(Documentation)
 
     def refresh(self):
-        self.UI.update_graph()
         self.UI.setStyleSheet("font: "+str(self.text_size)+"pt")
         rcParams.update({'font.size': self.text_size})
         self.UI.update_graph()
@@ -184,9 +183,11 @@ class UI(QWidget):
         slider.setMinimum(0)
         slider.valueChanged.connect(self.update_graph) # remove after animation
         
-        button = QPushButton() # rotate
+        button = QPushButton()
         name = os.path.basename(path).replace(".xlsx","")
+        name = name.replace(" ","\n")
         button.setText(name)
+        # set to same size
         button.clicked.connect(lambda: self.delete_slider(button)) 
         
         self.sliders.addWidget(slider) # slider
