@@ -19,10 +19,7 @@ from matplotlib.animation import FuncAnimation
 import Adviser
 import Files
 
-# import changes
 # pep8 http://pep8online.com/checkresult
-# pure functions
-# check spelling
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -32,11 +29,9 @@ class MainWindow(QMainWindow):
         self.color = "black" # opposite
         self.font = QFont()
         self.text_size = 9
-        # text color
 
         # param
         self.UI = UI(self)
-        # delete on close
         self.setCentralWidget(self.UI)
         self.showMaximized()
         self.Light_Dark()
@@ -46,7 +41,6 @@ class MainWindow(QMainWindow):
         'Menubar'
 
         MainMenu = self.menuBar()
-
         # File Menu
         FileMenu = MainMenu.addMenu('File')
 
@@ -119,7 +113,6 @@ class MainWindow(QMainWindow):
         self.refresh()
 
     def Light_Dark(self):
-        # change text
         if self.color == "white":
             self.color = "#3D3D3D"
         else:
@@ -190,7 +183,6 @@ class UI(QWidget):
         slider.setMinimum(0)
         slider.valueChanged.connect(self.update_graph) # remove after animation
         
-        # delete button
         button = QPushButton()
         name = os.path.basename(path).replace(".xlsx","")
         name = name.replace(" ","\n")
@@ -221,6 +213,7 @@ class UI(QWidget):
         canvas = FigureCanvas(self.fig)
         self.graph.addWidget(canvas)
 
+        # optional
         toolbar = NavigationToolbar2QT(canvas, self)
         self.graph.addWidget(toolbar)
 
@@ -231,10 +224,8 @@ class UI(QWidget):
         self.update_graph()
         # FuncAnimation(self.fig, update_graph)
 
-    def update_graph(self):  
-        # use animation
+    def update_graph(self):  # use animation
         # if avoids try but adds color bug
-        # shape mismatch
         try:
             self.soilValues, self.names = Files.run(self.soil_link)
         except:
@@ -290,19 +281,16 @@ class DragDrop(QLineEdit):
             full_paths = []
             for x in range(len(urls)):
                 url = str(urls[x].path())[1:]
-                if url[-5:].upper() == ".XLSX":
+                if url[-1*len(".XLSX"):].upper() == ".XLSX":
                     full_paths.append(url)
                 else:
                     print("This is not a .xlsx file")
             MainWindow.Open(full_paths)
-            self.close()
+            # exit window
 
 if __name__=='__main__':
-    # close all windows after main
+    # close all windows after mains
     app = QApplication(sys.argv)
-    # fusion windows 
-    app.setStyle('windows')
     MainWindow = MainWindow()
     MainWindow.show()
     sys.exit(app.exec_())
-    
