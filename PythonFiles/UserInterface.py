@@ -86,7 +86,7 @@ class MainWindow(QMainWindow):
 
     def refresh(self):
         self.UI.setStyleSheet("font: "+str(self.text_size)+"pt")
-        rcParams.update({'font.size': self.text_size})
+        rcParams.update({'font.size': self.text_size + 3})
         self.UI.update_graph()
 
     def Open(self, full_paths):
@@ -186,8 +186,8 @@ class UI(QWidget):
         slider.setStyleSheet("QSlider::handle:vertical {background-color: "+hex_color+";}")
 
         slider.setMaximum(5/100 * self.sliderTicks)
-        slider.setValue(0)
-        slider.setMinimum(0)
+        slider.setValue(1)
+        slider.setMinimum(1)
         slider.valueChanged.connect(self.update_graph) # remove after animation
         
         # delete button
@@ -227,7 +227,7 @@ class UI(QWidget):
         self.ax = canvas.figure.subplots()
         self.soil_link = r""
         self.ideal_link = r""
-        self.sliderTicks = 10**4
+        self.sliderTicks = 10**5
         self.update_graph()
         # FuncAnimation(self.fig, update_graph)
 
@@ -265,8 +265,33 @@ class UI(QWidget):
         self.ax.figure.canvas.draw()
 
     def context_menu_init(self):
-        pass
+        self.setContextMenuPolicy(Qt.ActionsContextMenu)
+        Auto = QAction("Auto", self)
+        Auto.triggered.connect(self.Auto)
+        self.addAction(Auto)
 
+    def Auto(self):
+        MainVector = Files.run(self.ideal_link)[0]
+        
+        while True:
+            CurrentPos = Files.run(self.soil_link)[0]
+            SubVectors = []
+            for i in range(len(self.sliderLinks)):
+                values = Files.run(self.sliderLinks[i])[0]
+                scale = self.sliders.itemAt(i).widget().value()
+                temp = values*scale
+                CurrentPos += temp
+                SubVectors.append(temp)
+            SubVectors = np.asarray(SubVectors)
+
+            index, value = Adviser.run(MainVector,CurrentPos,SubVectors)
+            if index == None:
+                break
+                
+            self.sliders.itemAt(index).widget().setValue(value)
+            print(index, self.sliders.itemAt(index).widget().value())
+            self.update_graph() # remove after animation
+        
 class DragDrop(QLineEdit):
     def __init__(self):
         # inherit

@@ -24,8 +24,8 @@ def run(MainVector,CurrentPos,SubVectors):
 
     # Break if no vector can get closer
     if MaxSimilarity==0:
-        exit()
+        return None , None
 
     # return values of best vector to GUI
     # vector scale , vector 
-    return float(np.linalg.norm(GOALVECTOR)/np.linalg.norm(SubVectors[MaxVectorPos])) , MaxVectorPos
+    return int(MaxVectorPos), float(np.linalg.norm(GOALVECTOR)/np.linalg.norm(SubVectors[MaxVectorPos]))
