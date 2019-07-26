@@ -1,6 +1,6 @@
 import numpy as np
 
-def run(MainVector,CurrentPos,SubVectors): 
+def run(ChangeVector,SubVectors): 
 
     """Create functions to be used"""
 
@@ -12,12 +12,11 @@ def run(MainVector,CurrentPos,SubVectors):
 
     # Set variables
     MaxSimilarity = 0
-    GOALVECTOR = MainVector-CurrentPos
-    UNITGOALVECTOR = unitVector(GOALVECTOR)
+    UnitChangeVector = unitVector(ChangeVector)
 
     # Test direction similarity for each
     for n in range(len(SubVectors)):
-        Similarity = np.dot(UNITGOALVECTOR,unitVector(SubVectors[n]))
+        Similarity = np.dot(UnitChangeVector,unitVector(SubVectors[n]))
         if MaxSimilarity<Similarity:
             MaxSimilarity = Similarity
             MaxVectorPos = n
@@ -28,4 +27,4 @@ def run(MainVector,CurrentPos,SubVectors):
 
     # return values of best vector to GUI
     # vector scale , vector 
-    return int(MaxVectorPos), float(np.linalg.norm(GOALVECTOR)/np.linalg.norm(SubVectors[MaxVectorPos]))
+    return int(MaxVectorPos), float(np.linalg.norm(ChangeVector)/np.linalg.norm(SubVectors[MaxVectorPos]))

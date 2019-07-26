@@ -36,4 +36,4 @@ def run(path):
                 else:
                         print("No measure - use mg/kg, g/sqm or %")
 
-        return np.asarray(Results), np.asarray(Elements)
+        return np.array(Results), np.array(Elements)

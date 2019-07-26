@@ -29,7 +29,7 @@ class MainWindow(QMainWindow):
         super(MainWindow, self).__init__()
 
         # globals
-        self.color = "black" # opposite
+        self.color = "white" # opposite
         self.font = QFont()
         self.text_size = 9
         # text color
@@ -83,6 +83,9 @@ class MainWindow(QMainWindow):
         Documentation = QAction("Open documentation",self)
         Documentation.triggered.connect(lambda: os.system('start Documentation'))
         HelpMenu.addAction(Documentation)
+
+        # testing
+        self.Open(['C:/Users/henryro/OneDrive - Ballarat Grammar School/2019 Software/Sat/ExcelFiles/Compost 15mm 2018.xlsx', 'C:/Users/henryro/OneDrive - Ballarat Grammar School/2019 Software/Sat/ExcelFiles/Compost 15mmm 2018 Office.xlsx', 'C:/Users/henryro/OneDrive - Ballarat Grammar School/2019 Software/Sat/ExcelFiles/Compost 25mm 2018.xlsx', 'C:/Users/henryro/OneDrive - Ballarat Grammar School/2019 Software/Sat/ExcelFiles/Compost Geelong Sample.xlsx', 'C:/Users/henryro/OneDrive - Ballarat Grammar School/2019 Software/Sat/ExcelFiles/Ideal.xlsx', 'C:/Users/henryro/OneDrive - Ballarat Grammar School/2019 Software/Sat/ExcelFiles/Soil N.Cole Dam.xlsx', 'C:/Users/henryro/OneDrive - Ballarat Grammar School/2019 Software/Sat/ExcelFiles/Soil N.Cole Elephant Track.xlsx', 'C:/Users/henryro/OneDrive - Ballarat Grammar School/2019 Software/Sat/ExcelFiles/Soil N.Cole Little.xlsx', 'C:/Users/henryro/OneDrive - Ballarat Grammar School/2019 Software/Sat/ExcelFiles/Soil N.Cole Mail Box.xlsx', 'C:/Users/henryro/OneDrive - Ballarat Grammar School/2019 Software/Sat/ExcelFiles/Soil N.Cole School.xlsx'])
 
     def refresh(self):
         self.UI.setStyleSheet("font: "+str(self.text_size)+"pt")
@@ -227,6 +230,7 @@ class UI(QWidget):
         self.ax = canvas.figure.subplots()
         self.soil_link = r""
         self.ideal_link = r""
+        # use proxy to get rid of sliderticks
         self.sliderTicks = 10**5
         self.update_graph()
         # FuncAnimation(self.fig, update_graph)
@@ -265,32 +269,53 @@ class UI(QWidget):
         self.ax.figure.canvas.draw()
 
     def context_menu_init(self):
+        # break if no values
+        # add context like click location
+        # proxy sliders
         self.setContextMenuPolicy(Qt.ActionsContextMenu)
-        Auto = QAction("Auto", self)
-        Auto.triggered.connect(self.Auto)
-        self.addAction(Auto)
 
-    def Auto(self):
-        MainVector = Files.run(self.ideal_link)[0]
-        
-        while True:
-            CurrentPos = Files.run(self.soil_link)[0]
-            SubVectors = []
+        auto_ideal = QAction("auto ideal", self)
+        auto_ideal.triggered.connect(self.auto_ideal)
+        self.addAction(auto_ideal)
+
+        auto_max = QAction("auto max", self)
+        auto_max.triggered.connect(self.auto_max)
+        self.addAction(auto_max)
+
+        sliders_reset = QAction("sliders reset", self)
+        sliders_reset.triggered.connect(self.sliders_reset)
+        self.addAction(sliders_reset)
+
+    def auto_ideal(self):
+        for arbitrary in range(25):
+            # get values
+            change_vector = self.IdealValues-self.soilValues
+            print(change_vector)
+            sub_vectors = np.zeros(len(change_vector)) 
             for i in range(len(self.sliderLinks)):
                 values = Files.run(self.sliderLinks[i])[0]
-                scale = self.sliders.itemAt(i).widget().value()
-                temp = values*scale
-                CurrentPos += temp
-                SubVectors.append(temp)
-            SubVectors = np.asarray(SubVectors)
-
-            index, value = Adviser.run(MainVector,CurrentPos,SubVectors)
-            if index == None:
-                break
-                
+                scaled_values = values * self.sliders.itemAt(i).widget().value() / self.sliderTicks
+                change_vector -= scaled_values
+                sub_vectors = np.vstack((sub_vectors, scaled_values))
+            sub_vectors = sub_vectors[1:]
+            # run
+            index, value = Adviser.run(change_vector,sub_vectors)
+            if value == None:
+                return None
+            # update 
             self.sliders.itemAt(index).widget().setValue(value)
-            print(index, self.sliders.itemAt(index).widget().value())
-            self.update_graph() # remove after animation
+        
+    def auto_max(self):
+        index = 0
+        change_vector = self.IdealValues*4-self.soilValues
+        values = Files.run(self.sliderLinks[index])[0]
+        setValue = np.amin(change_vector/values)
+        print(setValue, setValue*self.sliderTicks)
+        self.sliders.itemAt(index).widget().setValue(setValue*self.sliderTicks)
+
+    def sliders_reset(self):
+        for index in range(self.sliders.count()):
+            self.sliders.itemAt(index).widget().setValue(0)
         
 class DragDrop(QLineEdit):
     def __init__(self):
