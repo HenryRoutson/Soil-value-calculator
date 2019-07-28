@@ -2,10 +2,10 @@
 
 """
 to do :
-fix auto ideal
-self.index to click
+fix context menu functions
 closeall after main
-animation matplot
+animation matplots
+ideals out of frame
 comments
 """
 
@@ -95,7 +95,8 @@ class MainWindow(QMainWindow):
         HelpMenu.addAction(Documentation)
 
         # testing
-        self.Open(['C:/Users/henryro/OneDrive - Ballarat Grammar School/2019 Software/Sat/ExcelFiles/Compost 15mm 2018.xlsx', 'C:/Users/henryro/OneDrive - Ballarat Grammar School/2019 Software/Sat/ExcelFiles/Compost 15mmm 2018_Office.xlsx', 'C:/Users/henryro/OneDrive - Ballarat Grammar School/2019 Software/Sat/ExcelFiles/Compost 25mm 2018.xlsx', 'C:/Users/henryro/OneDrive - Ballarat Grammar School/2019 Software/Sat/ExcelFiles/Compost Geelong Sample.xlsx', 'C:/Users/henryro/OneDrive - Ballarat Grammar School/2019 Software/Sat/ExcelFiles/Ideal.xlsx', 'C:/Users/henryro/OneDrive - Ballarat Grammar School/2019 Software/Sat/ExcelFiles/Soil N.Cole Dam.xlsx', 'C:/Users/henryro/OneDrive - Ballarat Grammar School/2019 Software/Sat/ExcelFiles/Soil N.Cole Elephant Track.xlsx', 'C:/Users/henryro/OneDrive - Ballarat Grammar School/2019 Software/Sat/ExcelFiles/Soil N.Cole Little.xlsx', 'C:/Users/henryro/OneDrive - Ballarat Grammar School/2019 Software/Sat/ExcelFiles/Soil N.Cole Mail Box.xlsx', 'C:/Users/henryro/OneDrive - Ballarat Grammar School/2019 Software/Sat/ExcelFiles/Soil N.Cole School.xlsx'])
+        # self.Open(['C:/Users/henryro/OneDrive - Ballarat Grammar School/2019 Software/Sat/ExcelFiles/Compost 15mm 2018.xlsx', 'C:/Users/henryro/OneDrive - Ballarat Grammar School/2019 Software/Sat/ExcelFiles/Compost 15mmm 2018_Office.xlsx', 'C:/Users/henryro/OneDrive - Ballarat Grammar School/2019 Software/Sat/ExcelFiles/Compost 25mm 2018.xlsx', 'C:/Users/henryro/OneDrive - Ballarat Grammar School/2019 Software/Sat/ExcelFiles/Compost Geelong Sample.xlsx', 'C:/Users/henryro/OneDrive - Ballarat Grammar School/2019 Software/Sat/ExcelFiles/Ideal.xlsx', 'C:/Users/henryro/OneDrive - Ballarat Grammar School/2019 Software/Sat/ExcelFiles/Soil N.Cole Dam.xlsx', 'C:/Users/henryro/OneDrive - Ballarat Grammar School/2019 Software/Sat/ExcelFiles/Soil N.Cole Elephant Track.xlsx', 'C:/Users/henryro/OneDrive - Ballarat Grammar School/2019 Software/Sat/ExcelFiles/Soil N.Cole Little.xlsx', 'C:/Users/henryro/OneDrive - Ballarat Grammar School/2019 Software/Sat/ExcelFiles/Soil N.Cole Mail Box.xlsx', 'C:/Users/henryro/OneDrive - Ballarat Grammar School/2019 Software/Sat/ExcelFiles/Soil N.Cole School.xlsx'])
+        self.Open(['C:/Users/henryro/OneDrive - Ballarat Grammar School/2019 Software/Sat/ExcelFilesTesting/Compost.xlsx', 'C:/Users/henryro/OneDrive - Ballarat Grammar School/2019 Software/Sat/ExcelFilesTesting/Ideal.xlsx', 'C:/Users/henryro/OneDrive - Ballarat Grammar School/2019 Software/Sat/ExcelFilesTesting/Soil.xlsx'])
 
     def refresh(self):
         self.UI.setStyleSheet("font: "+str(self.text_size)+"pt")
@@ -157,8 +158,8 @@ class QCustomSlider(QSlider):
         super().setMinimum(0)
         super().setMaximum(self._max_int)
 
-        self._min_value = 0.00001
-        self._max_value = 0.05000
+        self._min_value = 0.0000001
+        self._max_value = 0.0500000
 
     def _value_range(self):
         return self._max_value - self._min_value
@@ -234,14 +235,12 @@ class UI(QWidget):
         self.color_pos += 1
         self.colors.append(hex_color)
         custom_slider.setStyleSheet("QSlider::handle:vertical {background-color: "+hex_color+";}")
-        # slider.clicked.connect(self.update_index)
-        custom_slider.valueChanged.connect(self.update_graph) # remove after animation
+        custom_slider.valueChanged.connect(lambda: [self.update_graph(), self.update_index(custom_slider)]) # remove after animation
         
         button = QPushButton()
         name = os.path.basename(path).replace(".xlsx","")
         name = name.replace(" ","\n")
         button.setText(name)
-        # set to same size
         button.clicked.connect(lambda: self.delete_slider(button)) 
         
         self.sliders.addWidget(custom_slider)
@@ -258,8 +257,6 @@ class UI(QWidget):
         self.update_graph()
 
     def graph_init(self):
-        self.min = 1 # testing
-        # fix zoom 
         self.graph  = QVBoxLayout()
         self.Layout.addLayout(self.graph)
 
@@ -310,25 +307,11 @@ class UI(QWidget):
         self.ax.set_xticklabels(self.names)
         self.ax.figure.canvas.draw()
 
-        # # testing
-        
-        # change_vector = np.array(self.IdealValues)-np.array(self.soilValues)
-        # for i in range(len(self.sliderLinks)):
-        #     values = Files.run(self.sliderLinks[i])[0]
-        #     slider_value = self.sliders.itemAt(i).widget().value()
-        #     scaled_values = values * slider_value
-        #     change_vector -= scaled_values
-
-        # current = np.linalg.norm(change_vector)
-        # if current == 0:
-        #     current = 1
-        # if self.min>current:
-        #     self.min = current 
-        #     print(current)
+    def update_index(self, slider):
+        self.index = self.sliders.indexOf(slider)
 
     def context_menu_init(self):
         self.setContextMenuPolicy(Qt.ActionsContextMenu)
-        self.index = 0
         
         auto_ideal = QAction("auto ideal", self)
         auto_ideal.triggered.connect(self.auto_ideal)
@@ -343,8 +326,19 @@ class UI(QWidget):
         self.addAction(sliders_reset)
 
     def auto_ideal(self):
+        """
+        10 -> 7
+        vec  = 1.5
+        10 + -2 * 1.5
+
+        7 -> 10
+        vec = 1.5
+        7 + 2 * 1.5
+
+        start + scale * current vec
+        """
         # get values
-        change_vector = self.IdealValues-self.soilValues
+        change_vector = self.IdealValues
         sub_vectors = np.zeros(len(change_vector)) 
         for i in range(len(self.sliderLinks)):
             values = Files.run(self.sliderLinks[i])[0]
@@ -396,8 +390,6 @@ class DragDrop(QLineEdit):
                 url = str(urls[x].path())[1:]
                 if url[-5:].upper() == ".XLSX":
                     full_paths.append(url)
-                else:
-                    print("This is not a .xlsx file")
             MainWindow.Open(full_paths)
             self.close()
 
