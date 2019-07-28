@@ -3,11 +3,10 @@
 """
 to do :
 fix auto ideal
-jumpslider
 self.index to click
-comments
 closeall after main
 animation matplot
+comments
 """
 
 import os
@@ -96,7 +95,7 @@ class MainWindow(QMainWindow):
         HelpMenu.addAction(Documentation)
 
         # testing
-        self.Open(['C:/Users/henryro/OneDrive - Ballarat Grammar School/2019 Software/Sat/ExcelFiles/Compost 15mm 2018.xlsx', 'C:/Users/henryro/OneDrive - Ballarat Grammar School/2019 Software/Sat/ExcelFiles/Compost 15mmm 2018 Office.xlsx', 'C:/Users/henryro/OneDrive - Ballarat Grammar School/2019 Software/Sat/ExcelFiles/Compost 25mm 2018.xlsx', 'C:/Users/henryro/OneDrive - Ballarat Grammar School/2019 Software/Sat/ExcelFiles/Compost Geelong Sample.xlsx', 'C:/Users/henryro/OneDrive - Ballarat Grammar School/2019 Software/Sat/ExcelFiles/Ideal.xlsx', 'C:/Users/henryro/OneDrive - Ballarat Grammar School/2019 Software/Sat/ExcelFiles/Soil N.Cole Dam.xlsx', 'C:/Users/henryro/OneDrive - Ballarat Grammar School/2019 Software/Sat/ExcelFiles/Soil N.Cole Elephant Track.xlsx', 'C:/Users/henryro/OneDrive - Ballarat Grammar School/2019 Software/Sat/ExcelFiles/Soil N.Cole Little.xlsx', 'C:/Users/henryro/OneDrive - Ballarat Grammar School/2019 Software/Sat/ExcelFiles/Soil N.Cole Mail Box.xlsx', 'C:/Users/henryro/OneDrive - Ballarat Grammar School/2019 Software/Sat/ExcelFiles/Soil N.Cole School.xlsx'])
+        self.Open(['C:/Users/henryro/OneDrive - Ballarat Grammar School/2019 Software/Sat/ExcelFiles/Compost 15mm 2018.xlsx', 'C:/Users/henryro/OneDrive - Ballarat Grammar School/2019 Software/Sat/ExcelFiles/Compost 15mmm 2018_Office.xlsx', 'C:/Users/henryro/OneDrive - Ballarat Grammar School/2019 Software/Sat/ExcelFiles/Compost 25mm 2018.xlsx', 'C:/Users/henryro/OneDrive - Ballarat Grammar School/2019 Software/Sat/ExcelFiles/Compost Geelong Sample.xlsx', 'C:/Users/henryro/OneDrive - Ballarat Grammar School/2019 Software/Sat/ExcelFiles/Ideal.xlsx', 'C:/Users/henryro/OneDrive - Ballarat Grammar School/2019 Software/Sat/ExcelFiles/Soil N.Cole Dam.xlsx', 'C:/Users/henryro/OneDrive - Ballarat Grammar School/2019 Software/Sat/ExcelFiles/Soil N.Cole Elephant Track.xlsx', 'C:/Users/henryro/OneDrive - Ballarat Grammar School/2019 Software/Sat/ExcelFiles/Soil N.Cole Little.xlsx', 'C:/Users/henryro/OneDrive - Ballarat Grammar School/2019 Software/Sat/ExcelFiles/Soil N.Cole Mail Box.xlsx', 'C:/Users/henryro/OneDrive - Ballarat Grammar School/2019 Software/Sat/ExcelFiles/Soil N.Cole School.xlsx'])
 
     def refresh(self):
         self.UI.setStyleSheet("font: "+str(self.text_size)+"pt")
@@ -152,7 +151,7 @@ class QCustomSlider(QSlider):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.decimals = 5
+        self.decimals = 2
         self._max_int = 10 ** self.decimals
 
         super().setMinimum(0)
@@ -170,6 +169,21 @@ class QCustomSlider(QSlider):
     def setValue(self, value):
         super().setValue(int((value - self._min_value) / self._value_range() * self._max_int))
 
+    # https://github.com/PyQt5/PyQt/blob/master/QSlider/ClickJumpSlider.py
+    def mousePressEvent(self, event):
+        option = QStyleOptionSlider()
+        self.initStyleOption(option)
+        rect = self.style().subControlRect(
+            QStyle.CC_Slider, option, QStyle.SC_SliderHandle, self)
+        if rect.contains(event.pos()):
+            super(QCustomSlider, self).mousePressEvent(event)
+            return
+        setValue = self.style().sliderValueFromPosition(
+            self.minimum(), self.maximum(),
+            (self.height() - event.y()) if not self.invertedAppearance(
+            ) else event.y(), self.height())
+        super().setValue(setValue)
+        
 class UI(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -298,14 +312,14 @@ class UI(QWidget):
 
         # # testing
         
-        # self.change_vector = np.array(self.IdealValues)-np.array(self.soilValues)
+        # change_vector = np.array(self.IdealValues)-np.array(self.soilValues)
         # for i in range(len(self.sliderLinks)):
         #     values = Files.run(self.sliderLinks[i])[0]
         #     slider_value = self.sliders.itemAt(i).widget().value()
         #     scaled_values = values * slider_value
-        #     self.change_vector -= scaled_values
+        #     change_vector -= scaled_values
 
-        # current = np.linalg.norm(self.change_vector)
+        # current = np.linalg.norm(change_vector)
         # if current == 0:
         #     current = 1
         # if self.min>current:
@@ -330,17 +344,17 @@ class UI(QWidget):
 
     def auto_ideal(self):
         # get values
-        self.change_vector = self.IdealValues-self.soilValues
-        sub_vectors = np.zeros(len(self.change_vector)) 
+        change_vector = self.IdealValues-self.soilValues
+        sub_vectors = np.zeros(len(change_vector)) 
         for i in range(len(self.sliderLinks)):
             values = Files.run(self.sliderLinks[i])[0]
             slider_value = self.sliders.itemAt(i).widget().value()
             scaled_values = values * slider_value
-            self.change_vector -= scaled_values
+            change_vector -= scaled_values
             sub_vectors = np.vstack((sub_vectors, scaled_values))
-        self.sub_vectors = sub_vectors[1:]
+        sub_vectors = sub_vectors[1:]
         # run
-        index, scale = Adviser.run(self.change_vector,self.sub_vectors)
+        index, scale = Adviser.run(change_vector,sub_vectors)
         if scale == None:
             return None
         # update 

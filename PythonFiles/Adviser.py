@@ -28,3 +28,4 @@ def run(ChangeVector,SubVectors):
     # return values of best vector to GUI
     # vector scale , vector 
     return int(MaxVectorPos), float(np.linalg.norm(ChangeVector)/np.linalg.norm(SubVectors[MaxVectorPos]))
+    
