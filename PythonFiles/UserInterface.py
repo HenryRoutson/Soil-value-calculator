@@ -1,5 +1,15 @@
 "GUI"
 
+"""
+to do :
+fix auto ideal
+jumpslider
+self.index to click
+comments
+closeall after main
+animation matplot
+"""
+
 import os
 import sys
 import re
@@ -14,6 +24,7 @@ from matplotlib.backends.qt_compat import QtCore, QtWidgets, is_pyqt5
 from matplotlib.backends.backend_qt5agg import *
 from matplotlib.figure import Figure
 from matplotlib.animation import FuncAnimation
+matplotlib.use('TkAgg') # speed increase
 
 # modules
 import Adviser
@@ -22,7 +33,6 @@ import Files
 # import changes
 # pep8 http://pep8online.com/checkresult
 # pure functions
-# check spelling
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -36,8 +46,9 @@ class MainWindow(QMainWindow):
 
         # param
         self.UI = UI(self)
-        # delete on close
         self.setCentralWidget(self.UI)
+        size = app.primaryScreen().size()
+        self.setMinimumSize(size.width(), size.height()/2)
         self.showMaximized()
         self.Light_Dark()
         self.setWindowTitle('GUI')
@@ -137,6 +148,28 @@ class MainWindow(QMainWindow):
         self.UI.fig.set_facecolor(self.color)
         self.refresh()
 
+class QCustomSlider(QSlider):
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.decimals = 5
+        self._max_int = 10 ** self.decimals
+
+        super().setMinimum(0)
+        super().setMaximum(self._max_int)
+
+        self._min_value = 0.00001
+        self._max_value = 0.05000
+
+    def _value_range(self):
+        return self._max_value - self._min_value
+
+    def value(self):
+        return float(super().value()) / self._max_int * self._value_range() + self._min_value
+
+    def setValue(self, value):
+        super().setValue(int((value - self._min_value) / self._value_range() * self._max_int))
+
 class UI(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -178,22 +211,18 @@ class UI(QWidget):
                 return None
             
         self.sliderLinks.append(path)
-        # QProxyStyle QJumpSlider
         slider = QSlider(Qt.Vertical)
+        custom_slider = QCustomSlider(slider)
 
         if self.color_pos == len(self.color_options):
             self.color_pos = 0
         hex_color = self.color_options[self.color_pos]
         self.color_pos += 1
         self.colors.append(hex_color)
-        slider.setStyleSheet("QSlider::handle:vertical {background-color: "+hex_color+";}")
-
-        slider.setMaximum(5/100 * self.sliderTicks)
-        slider.setValue(1)
-        slider.setMinimum(1)
-        slider.valueChanged.connect(self.update_graph) # remove after animation
+        custom_slider.setStyleSheet("QSlider::handle:vertical {background-color: "+hex_color+";}")
+        # slider.clicked.connect(self.update_index)
+        custom_slider.valueChanged.connect(self.update_graph) # remove after animation
         
-        # delete button
         button = QPushButton()
         name = os.path.basename(path).replace(".xlsx","")
         name = name.replace(" ","\n")
@@ -201,9 +230,9 @@ class UI(QWidget):
         # set to same size
         button.clicked.connect(lambda: self.delete_slider(button)) 
         
-        self.sliders.addWidget(slider) # slider
-        self.buttons.addWidget(button) # button
-        self.values.addWidget(QLabel("0 T/Ha")) # value
+        self.sliders.addWidget(custom_slider)
+        self.buttons.addWidget(button) 
+        self.values.addWidget(QLabel("0 T/Ha"))
 
     def delete_slider(self, button):
         index = self.buttons.indexOf(button)
@@ -215,6 +244,7 @@ class UI(QWidget):
         self.update_graph()
 
     def graph_init(self):
+        self.min = 1 # testing
         # fix zoom 
         self.graph  = QVBoxLayout()
         self.Layout.addLayout(self.graph)
@@ -230,8 +260,6 @@ class UI(QWidget):
         self.ax = canvas.figure.subplots()
         self.soil_link = r""
         self.ideal_link = r""
-        # use proxy to get rid of sliderticks
-        self.sliderTicks = 10**5
         self.update_graph()
         # FuncAnimation(self.fig, update_graph)
 
@@ -256,10 +284,10 @@ class UI(QWidget):
         values_sum = self.soilValues
         for index in range(self.sliders.count()):
             slider_value = self.sliders.itemAt(index).widget().value()
-            ys = Files.run(self.sliderLinks[index])[0]*slider_value/self.sliderTicks
+            ys = Files.run(self.sliderLinks[index])[0]*slider_value
             self.ax.bar(xs, ys, bottom=values_sum, color=self.colors[index], edgecolor='black')
             values_sum += ys
-            T_Ha = round(1330*slider_value/self.sliderTicks,1)
+            T_Ha = round(1330*slider_value,1)
             self.values.itemAt(index).widget().setText(str(T_Ha)+"T/Ha")
 
         self.ax.bar(xs, self.IdealValues, facecolor="None", edgecolor='green') # want out of frame
@@ -268,12 +296,26 @@ class UI(QWidget):
         self.ax.set_xticklabels(self.names)
         self.ax.figure.canvas.draw()
 
-    def context_menu_init(self):
-        # break if no values
-        # add context like click location
-        # proxy sliders
-        self.setContextMenuPolicy(Qt.ActionsContextMenu)
+        # # testing
+        
+        # self.change_vector = np.array(self.IdealValues)-np.array(self.soilValues)
+        # for i in range(len(self.sliderLinks)):
+        #     values = Files.run(self.sliderLinks[i])[0]
+        #     slider_value = self.sliders.itemAt(i).widget().value()
+        #     scaled_values = values * slider_value
+        #     self.change_vector -= scaled_values
 
+        # current = np.linalg.norm(self.change_vector)
+        # if current == 0:
+        #     current = 1
+        # if self.min>current:
+        #     self.min = current 
+        #     print(current)
+
+    def context_menu_init(self):
+        self.setContextMenuPolicy(Qt.ActionsContextMenu)
+        self.index = 0
+        
         auto_ideal = QAction("auto ideal", self)
         auto_ideal.triggered.connect(self.auto_ideal)
         self.addAction(auto_ideal)
@@ -287,36 +329,34 @@ class UI(QWidget):
         self.addAction(sliders_reset)
 
     def auto_ideal(self):
-        for arbitrary in range(25):
-            # get values
-            change_vector = self.IdealValues-self.soilValues
-            print(change_vector)
-            sub_vectors = np.zeros(len(change_vector)) 
-            for i in range(len(self.sliderLinks)):
-                values = Files.run(self.sliderLinks[i])[0]
-                scaled_values = values * self.sliders.itemAt(i).widget().value() / self.sliderTicks
-                change_vector -= scaled_values
-                sub_vectors = np.vstack((sub_vectors, scaled_values))
-            sub_vectors = sub_vectors[1:]
-            # run
-            index, value = Adviser.run(change_vector,sub_vectors)
-            if value == None:
-                return None
-            # update 
-            self.sliders.itemAt(index).widget().setValue(value)
-        
+        # get values
+        self.change_vector = self.IdealValues-self.soilValues
+        sub_vectors = np.zeros(len(self.change_vector)) 
+        for i in range(len(self.sliderLinks)):
+            values = Files.run(self.sliderLinks[i])[0]
+            slider_value = self.sliders.itemAt(i).widget().value()
+            scaled_values = values * slider_value
+            self.change_vector -= scaled_values
+            sub_vectors = np.vstack((sub_vectors, scaled_values))
+        self.sub_vectors = sub_vectors[1:]
+        # run
+        index, scale = Adviser.run(self.change_vector,self.sub_vectors)
+        if scale == None:
+            return None
+        # update 
+        current = self.sliders.itemAt(index).widget().value()
+        self.sliders.itemAt(index).widget().setValue(scale*current)
+
     def auto_max(self):
-        index = 0
         change_vector = self.IdealValues*4-self.soilValues
-        values = Files.run(self.sliderLinks[index])[0]
+        values = Files.run(self.sliderLinks[self.index])[0]
         setValue = np.amin(change_vector/values)
-        print(setValue, setValue*self.sliderTicks)
-        self.sliders.itemAt(index).widget().setValue(setValue*self.sliderTicks)
+        self.sliders.itemAt(self.index).widget().setValue(setValue)
 
     def sliders_reset(self):
         for index in range(self.sliders.count()):
             self.sliders.itemAt(index).widget().setValue(0)
-        
+            
 class DragDrop(QLineEdit):
     def __init__(self):
         # inherit
@@ -350,8 +390,6 @@ class DragDrop(QLineEdit):
 if __name__=='__main__':
     # close all windows after main
     app = QApplication(sys.argv)
-    # fusion windows 
-    app.setStyle('windows')
     MainWindow = MainWindow()
     MainWindow.show()
     sys.exit(app.exec_())

@@ -22,7 +22,7 @@ def run(ChangeVector,SubVectors):
             MaxVectorPos = n
 
     # Break if no vector can get closer
-    if MaxSimilarity==0:
+    if MaxSimilarity == 0:
         return None , None
 
     # return values of best vector to GUI
