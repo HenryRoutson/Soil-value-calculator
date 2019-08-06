@@ -3,6 +3,7 @@
 """
 to do :
 expand click for index 
+update mouse click for adaptable
 fix max and ideal
 animation matplots
 ideals out of frame
@@ -136,7 +137,6 @@ class MainWindow(QMainWindow):
         except:
             pass
         self.setStyleSheet("QWidget { background-color: "+self.color+" }")
-        self.UI.setStyleSheet("QWidget { background-color: "+self.color+" }")
         self.UI.ax.set_facecolor(self.color)
         self.UI.fig.set_facecolor(self.color)
         self.UI.update_graph()
@@ -181,7 +181,7 @@ class QCustomSlider(QSlider):
             MainWindow.UI.mousePressEvent(event)
 
 class UI(QWidget):
-    def __init__(self, parent=None):
+    def __init__(self, parent=MainWindow):
         super().__init__(parent)
 
         self.Layout = QHBoxLayout()
@@ -332,7 +332,11 @@ class UI(QWidget):
     def mousePressEvent(self, event):
         if event.button() == Qt.RightButton:
             self.current_slider_links = self.slider_links
-            index = int( event.globalX() / 125 )
+            width = 125 #
+            # Widget = QApplication.widgetAt(event.globalPos())
+            # width = Widget.frameGeometry().width() 
+            # print(width)
+            index = int( event.globalX() / width )
             print(index)
             if index < len(self.slider_links):
                 self.current_slider_links = [self.slider_links[index]]
