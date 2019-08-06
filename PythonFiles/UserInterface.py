@@ -1,17 +1,13 @@
-"GUI"
 
 """
 to do :
 expand click for index 
-update mouse click for adaptable
 fix max and ideal
 animation matplots
 ideals out of frame
-inherit
+popups
 closeall after main
-import changes
 pep8 http://pep8online.com/checkresult
-pure functions
 comments
 """
 
@@ -40,8 +36,8 @@ class MainWindow(QMainWindow):
         super(MainWindow, self).__init__()
 
         # param
-        self.UI = UI(self)
-        self.setCentralWidget(self.UI)
+        self.Widgets = Widgets(self)
+        self.setCentralWidget(self.Widgets)
         size = app.primaryScreen().size()
         self.setMinimumSize(size.width(), size.height()/2)
         self.showMaximized()
@@ -103,12 +99,12 @@ class MainWindow(QMainWindow):
         for full_path in full_paths:
             name =  os.path.basename(full_path)
             if re.search("IDEAL", name.upper()):
-                self.UI.ideal_link = full_path
+                self.Widgets.ideal_link = full_path
             elif re.search("SOIL", name.upper()):
-                self.UI.soil_link = full_path
+                self.Widgets.soil_link = full_path
             else:
-                self.UI.create_slider(full_path)
-        self.UI.update_graph()
+                self.Widgets.create_slider(full_path)
+        self.Widgets.update_graph()
 
     def DragAndDrop(self):
         self.DragDrop = DragDrop()
@@ -123,13 +119,13 @@ class MainWindow(QMainWindow):
                     self.text_size_value += -change
         except:
             pass
-        self.UI.setStyleSheet("font: "+str(self.text_size_value)+"pt")
+        self.Widgets.setStyleSheet("font: "+str(self.text_size_value)+"pt")
         rcParams.update({'font.size': self.text_size_value + 3})
-        self.UI.update_graph()
+        self.Widgets.update_graph() # remove after animation
 
     def Light_Dark(self):
         if self.color == "#EBEBEB":
-            self.color = "#70706D"
+            self.color = "#9c9c9c"
         else:
             self.color = "#EBEBEB"
         try:
@@ -137,9 +133,9 @@ class MainWindow(QMainWindow):
         except:
             pass
         self.setStyleSheet("QWidget { background-color: "+self.color+" }")
-        self.UI.ax.set_facecolor(self.color)
-        self.UI.fig.set_facecolor(self.color)
-        self.UI.update_graph()
+        self.Widgets.ax.set_facecolor(self.color)
+        self.Widgets.fig.set_facecolor(self.color)
+        self.Widgets.update_graph()
 
 class QCustomSlider(QSlider):
 
@@ -178,9 +174,9 @@ class QCustomSlider(QSlider):
                 ) else event.y(), self.height())
             super().setValue(setValue)
         else:
-            MainWindow.UI.mousePressEvent(event)
+            MainWindow.Widgets.mousePressEvent(event)
 
-class UI(QWidget):
+class Widgets(QWidget):
     def __init__(self, parent=MainWindow):
         super().__init__(parent)
 
@@ -233,7 +229,7 @@ class UI(QWidget):
         self.color_pos += 1
         self.colors.append(hex_color)
         custom_slider.setStyleSheet("QSlider::handle:vertical {background-color: "+hex_color+";}")
-        custom_slider.valueChanged.connect(lambda: self.update_graph()) # change after animation
+        custom_slider.valueChanged.connect(self.update_graph) # change after animation
         
         button = QPushButton()
         button.setStyleSheet("QPushButton:hover:!pressed { border: 2px solid red; }")
@@ -332,14 +328,13 @@ class UI(QWidget):
     def mousePressEvent(self, event):
         if event.button() == Qt.RightButton:
             self.current_slider_links = self.slider_links
-            width = 125 #
-            # Widget = QApplication.widgetAt(event.globalPos())
-            # width = Widget.frameGeometry().width() 
-            # print(width)
-            index = int( event.globalX() / width )
-            print(index)
-            if index < len(self.slider_links):
-                self.current_slider_links = [self.slider_links[index]]
+            if self.buttons.count() > 0:
+                widget = self.buttons.itemAt(0).widget()
+                width = widget.geometry().x() + widget.geometry().width()
+                index = int( event.globalX() / width )
+                print(index)
+                if index < len(self.slider_links):
+                    self.current_slider_links = [self.slider_links[index]]
 
     def sliders_reset(self):
         for i in range(len(self.current_slider_links)):
