@@ -1,11 +1,13 @@
 
 """
 to do :
+redefine values
 fix max and ideal
 animation matplots
 ideals out of frame
 popups
 closeall after main
+test values
 pep8 http://pep8online.com/checkresult
 comments
 """
@@ -172,8 +174,6 @@ class QCustomSlider(QSlider):
                 (self.height() - event.y()) if not self.invertedAppearance( 
                 ) else event.y(), self.height())
             super().setValue(setValue)
-        else:
-            MainWindow.Widgets.mousePressEvent(event)
 
 class Widgets(QWidget):
     def __init__(self, parent=MainWindow):
@@ -198,8 +198,8 @@ class Widgets(QWidget):
         self.slider_layout.addLayout(self.buttons)
         self.slider_layout.addLayout(self.values)
 
+        self.all_slider_links = []
         self.slider_links = []
-        self.current_slider_links = []
         self.color_options = []
         self.colors = []
         self.color_pos = 0
@@ -213,12 +213,12 @@ class Widgets(QWidget):
 
     def create_slider(self,path):
 
-        for x in self.slider_links:
+        for x in self.all_slider_links:
             if path == x:
                 return None
             
+        self.all_slider_links.append(path)
         self.slider_links.append(path)
-        self.current_slider_links.append(path)
         slider = QSlider(Qt.Vertical)
         custom_slider = QCustomSlider(slider)
 
@@ -246,7 +246,7 @@ class Widgets(QWidget):
         self.buttons.itemAt(index).widget().setParent(None)
         self.sliders.itemAt(index).widget().setParent(None)
         self.values.itemAt(index).widget().setParent(None)
-        del self.slider_links[index]
+        del self.all_slider_links[index]
         del self.colors[index]
         self.update_graph()
 
@@ -265,15 +265,16 @@ class Widgets(QWidget):
         self.ax = canvas.figure.subplots()
         self.soil_link = r""
         self.ideal_link = r""
+        self.max_div_ideal = 4
         self.update_graph()
 
     def update_graph(self):  
         try:
-            self.soilValues, self.names = Files.run(self.soil_link)
+            self.soilValues, self.names = Files.getValues(self.soil_link)
         except:
             pass
         try:
-            self.IdealValues, self.names = Files.run(self.ideal_link)
+            self.IdealValues, self.names = Files.getValues(self.ideal_link)
         except:
             pass
     
@@ -285,14 +286,14 @@ class Widgets(QWidget):
         values_sum = self.soilValues
         for index in range(self.sliders.count()):
             slider_value = self.sliders.itemAt(index).widget().value()
-            ys = Files.run(self.slider_links[index])[0]*slider_value
+            ys = Files.getValues(self.all_slider_links[index])[0]*slider_value
             self.ax.bar(xs, ys, bottom=values_sum, color=self.colors[index], edgecolor='black')
             values_sum += ys
             T_Ha = round(1330*slider_value,1)
-            self.values.itemAt(index).widget().setText(str(T_Ha)+"T/Ha")
+            self.values.itemAt(index).widget().setText(str(T_Ha)+" T/Ha")
 
         self.ax.bar(xs, self.IdealValues, facecolor="None", edgecolor='green')
-        self.ax.bar(xs, self.IdealValues*4, facecolor="None", edgecolor='red')
+        self.ax.bar(xs, self.IdealValues*self.max_div_ideal, facecolor="None", edgecolor='red')
         self.ax.set_xticks(xs)
         self.ax.set_xticklabels(self.names)
         self.ax.figure.canvas.draw()
@@ -300,69 +301,64 @@ class Widgets(QWidget):
     def context_menu_init(self):
         self.context_menu = QMenu(self)
 
-        sliders_reset = QAction("sliders reset", self)
-        sliders_reset.triggered.connect(self.sliders_reset)
-        self.context_menu.addAction(sliders_reset)
+        reset_values = QAction("Reset values", self)
+        reset_values.triggered.connect(self.reset_values)
+        self.context_menu.addAction(reset_values)
         
-        auto_ideal = QAction("auto ideal", self)
-        auto_ideal.triggered.connect(self.auto_ideal)
-        self.context_menu.addAction(auto_ideal)
+        ideal_values = QAction("Ideal values", self)
+        ideal_values.triggered.connect(self.ideal_values)
+        self.context_menu.addAction(ideal_values)
 
-        auto_max = QAction("auto max", self)
-        auto_max.triggered.connect(self.auto_max)
-        self.context_menu.addAction(auto_max)
+        max_values = QAction("Max values", self)
+        max_values.triggered.connect(self.max_values)
+        self.context_menu.addAction(max_values)
 
     def contextMenuEvent(self, event):
-        self.current_slider_links = self.slider_links
-        if self.buttons.count() > 0:
-            widget = self.buttons.itemAt(0).widget()
-            width = widget.geometry().x() + widget.geometry().width()
-            index = int( event.globalX() / width )
-            if index < len(self.slider_links):
-                print(index)
-                self.current_slider_links = [self.slider_links[index]]
-
+        self.slider_links = self.all_slider_links
+        for index in range(self.buttons.count()):
+            widget = self.buttons.itemAt(index).widget().geometry()
+            if event.globalX() < widget.x() + widget.width():
+                if index < len(self.all_slider_links):
+                    self.slider_links = [self.all_slider_links[index]]
+                break
         self.context_menu.exec_(self.mapToGlobal(event.pos()))
 
-    def sliders_reset(self):
-        for i in range(len(self.current_slider_links)):
-            index = self.slider_links.index(self.current_slider_links[i])
+    def reset_values(self):
+        for i in range(len(self.slider_links)):
+            index = self.all_slider_links.index(self.slider_links[i])
             self.sliders.itemAt(index).widget().setValue(0)
 
-    def auto_ideal(self):
-        # get soil
-        change_vector = self.IdealValues-self.soilValues
-        # get slider values
+    def get_vectors(self, ideal_scalar):
+        change_vector = self.IdealValues * ideal_scalar - self.soilValues
         sub_vectors = np.zeros(len(change_vector)) 
-        for i in range(len(self.current_slider_links)):
-            values = Files.run(self.current_slider_links[i])[0]
+        for i in range(len(self.slider_links)):
+            values = Files.getValues(self.slider_links[i])[0]
             slider_value = self.sliders.itemAt(i).widget().value()
             change_vector -= values * slider_value
             sub_vectors = np.vstack((sub_vectors, values))
-        # run
-        index, setValue = Adviser.run(change_vector,sub_vectors[1:])
+        return change_vector, sub_vectors[1:]
+
+    def ideal_values(self):
+        change_vector, sub_vectors = self.get_vectors(1)
+        index, setValue = Adviser.run(change_vector,sub_vectors)
         if setValue == None:
             return None
-        if len(self.current_slider_links) == 1:
-            index = self.slider_links.index(self.current_slider_links[0])
-        # update 
+        if len(self.slider_links) == 1:
+            index = self.all_slider_links.index(self.slider_links[0])
         self.sliders.itemAt(index).widget().setValue(setValue)
 
-    def auto_max(self):
-        setValueMax = 0
-        indexMax = -1
-        for index in range(len(self.current_slider_links)):
-            change_vector = self.IdealValues*4-self.soilValues
-            values = Files.run(self.current_slider_links[index])[0]
-            setValue = np.amin(change_vector/values)
-            if setValueMax<setValue:
-                setValueMax = setValue  
-                indexMax = index
-        if len(self.current_slider_links) == 1:
-            indexMax = self.slider_links.index(self.current_slider_links[0])
-        print(setValueMax)
-        self.sliders.itemAt(indexMax).widget().setValue(setValueMax)
-                
+    def max_values(self):
+        change_vector, sub_vectors = self.get_vectors(self.max_div_ideal)
+        setValue, index = 0, 0 
+        for i in range(len(sub_vectors)):
+            temp = np.amin(change_vector/sub_vectors[i])
+            if setValue < temp:
+                setValue = temp  
+                index = i
+        if len(self.slider_links) == 1:
+            index = self.all_slider_links.index(self.slider_links[0])
+        self.sliders.itemAt(index).widget().setValue(setValue)
+   
 class DragDrop(QLineEdit):
     def __init__(self):
         super(DragDrop, self).__init__()

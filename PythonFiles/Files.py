@@ -3,7 +3,7 @@ from xlutils.save import save
 import xlrd
 import os
 
-def run(path):
+def getValues(path):
 
         if path == "":
                 return [] , []
@@ -37,4 +37,6 @@ def run(path):
                         print("No measure - use mg/kg, g/sqm or %")
 
         return np.array(Results), np.array(Elements)
-        
+
+def testValues(path):
+        pass
