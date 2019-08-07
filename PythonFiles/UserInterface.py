@@ -1,7 +1,6 @@
 
 """
 to do :
-expand click for index 
 fix max and ideal
 animation matplots
 ideals out of frame
@@ -299,42 +298,31 @@ class Widgets(QWidget):
         self.ax.figure.canvas.draw()
 
     def context_menu_init(self):
-        self.setContextMenuPolicy(Qt.ActionsContextMenu)
-        self.customContextMenuRequested.connect(self.contextMenuEvent)
+        self.context_menu = QMenu(self)
 
         sliders_reset = QAction("sliders reset", self)
         sliders_reset.triggered.connect(self.sliders_reset)
-        self.addAction(sliders_reset)
+        self.context_menu.addAction(sliders_reset)
         
         auto_ideal = QAction("auto ideal", self)
         auto_ideal.triggered.connect(self.auto_ideal)
-        self.addAction(auto_ideal)
+        self.context_menu.addAction(auto_ideal)
 
         auto_max = QAction("auto max", self)
         auto_max.triggered.connect(self.auto_max)
-        self.addAction(auto_max)
+        self.context_menu.addAction(auto_max)
 
-    # def mouseActivation(self):
-    #     print("mouseActivation")
-
-    # def QContextMenuEvent(self, event):
-    #     print("QContextMenuEvent")
-    #     print(event)
-
-    # def contextMenuEvent(self, event):
-    #     print("contextMenuEvent")
-    #     print(event)
-
-    def mousePressEvent(self, event):
-        if event.button() == Qt.RightButton:
-            self.current_slider_links = self.slider_links
-            if self.buttons.count() > 0:
-                widget = self.buttons.itemAt(0).widget()
-                width = widget.geometry().x() + widget.geometry().width()
-                index = int( event.globalX() / width )
+    def contextMenuEvent(self, event):
+        self.current_slider_links = self.slider_links
+        if self.buttons.count() > 0:
+            widget = self.buttons.itemAt(0).widget()
+            width = widget.geometry().x() + widget.geometry().width()
+            index = int( event.globalX() / width )
+            if index < len(self.slider_links):
                 print(index)
-                if index < len(self.slider_links):
-                    self.current_slider_links = [self.slider_links[index]]
+                self.current_slider_links = [self.slider_links[index]]
+
+        self.context_menu.exec_(self.mapToGlobal(event.pos()))
 
     def sliders_reset(self):
         for i in range(len(self.current_slider_links)):
