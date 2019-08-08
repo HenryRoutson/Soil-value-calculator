@@ -2,7 +2,6 @@
 """
 to do :
 fix max and ideal
-subfunctions
 animation matplots
 ideals out of frame
 popups
@@ -37,18 +36,28 @@ matplotlib.use('TkAgg') # speed increase
 import Adviser
 import Files
 
+
 class MainWindow(QMainWindow):
     def __init__(self):
         super(MainWindow, self).__init__()
 
-        # param
-        self.Widgets = Widgets(self)
-        self.setCentralWidget(self.Widgets)
+        "preferences"
+
+        # look
+        self.text_size_value = 9
+        self.light_mode = True
+        self.color_index = 0 # index += 1 
+        self.color_options = ["#9c9c9c", "#EBEBEB"]
+
+        self.setWindowTitle('GUI')
+        self.setWindowIcon(QIcon('pythonlogo.png'))
+        # size
         size = app.primaryScreen().size()
         self.setMinimumSize(size.width(), size.height()/2)
         self.showMaximized()
-        self.setWindowTitle('GUI')
-        self.setWindowIcon(QIcon('pythonlogo.png'))
+        # functional
+        self.Widgets = Widgets(self)
+        self.setCentralWidget(self.Widgets)
 
         'Menubar'
 
@@ -77,16 +86,14 @@ class MainWindow(QMainWindow):
         SettingsMenu.addAction(text_size_Up)
 
         self.font = QFont()
-        self.text_size_value = 9
         text_size_Down = QAction("Text Size Down",self)
         text_size_Down.triggered.connect(self.text_size)
         SettingsMenu.addAction(text_size_Down)
 
-        self.color = ""
-        self.Light_Dark()
-        Light_Dark = QAction("Light/Dark",self)
-        Light_Dark.triggered.connect(self.Light_Dark)
-        SettingsMenu.addAction(Light_Dark)
+        self.light_dark()
+        light_dark = QAction("Light/Dark",self)
+        light_dark.triggered.connect(self.light_dark)
+        SettingsMenu.addAction(light_dark)
 
         # Help menu
         HelpMenu = MainMenu.addMenu('Help')
@@ -129,15 +136,15 @@ class MainWindow(QMainWindow):
         rcParams.update({'font.size': self.text_size_value + 3})
         self.Widgets.update_graph() # remove after animation
 
-    def Light_Dark(self):
-        if self.color == "#EBEBEB":
-            self.color = "#9c9c9c"
+    def light_dark(self):
+        if self.color_index > len(self.color_options):
+            self.color_index = 0
         else:
-            self.color = "#EBEBEB"
-        try:
-            self.DragDrop.setStyleSheet("QWidget { background-color: "+self.color+" }")
-        except:
-            pass
+            self.color_index += 1
+        self.color = self.color_options[self.color_index]
+        self.update_color()
+
+    def update_color(self):
         self.setStyleSheet("QWidget { background-color: "+self.color+" }")
         self.Widgets.ax.set_facecolor(self.color)
         self.Widgets.fig.set_facecolor(self.color)
@@ -178,6 +185,12 @@ class QCustomSlider(QSlider):
 class Widgets(QWidget):
     def __init__(self, parent=MainWindow):
         super().__init__(parent)
+
+        "preferences"
+        # functional
+        self.max_div_ideal = 4
+        self.label_conversion = 1330
+        self.label_unit = " T/Ha"
 
         self.Layout = QHBoxLayout()
         self.setLayout(self.Layout)
@@ -265,7 +278,6 @@ class Widgets(QWidget):
         self.ax = canvas.figure.subplots()
         self.soil_link = r""
         self.ideal_link = r""
-        self.max_div_ideal = 4
         self.update_graph()
 
     def update_graph(self):  
@@ -284,13 +296,13 @@ class Widgets(QWidget):
         self.ax.bar(xs, self.soilValues, color = "grey")
 
         bar_level = self.soilValues
-        for index in range(self.sliders.count()):
-            slider_value = self.sliders.itemAt(index).widget().value()
-            ys = Files.getValues(self.all_slider_links[index])[0]*slider_value
-            self.ax.bar(xs, ys, bottom=bar_level, color=self.colors[index], edgecolor='black')
+        for i, slider_link in enumerate(self.all_slider_links):
+
+            slider_value = self.sliders.itemAt(i).widget().value()
+            ys = Files.getValues(slider_link)[0] * slider_value
+            self.ax.bar(xs, ys, bottom=bar_level, color=self.colors[i], edgecolor='black')
             bar_level += ys
-            T_Ha = round(1330*slider_value,1)
-            self.labels.itemAt(index).widget().setText(str(T_Ha)+" T/Ha")
+            self.labels.itemAt(i).widget().setText(str(self.label_conversion*slider_value)[3:]+ self.label_unit)
 
         self.ax.bar(xs, self.IdealValues, facecolor="None", edgecolor='green')
         self.ax.bar(xs, self.IdealValues*self.max_div_ideal, facecolor="None", edgecolor='red')
