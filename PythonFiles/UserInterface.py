@@ -324,15 +324,15 @@ class Widgets(QWidget):
         self.context_menu.exec_(self.mapToGlobal(event.pos()))
 
     def reset_values(self):
-        for i in range(len(self.slider_links)):
-            index = self.all_slider_links.index(self.slider_links[i])
+        for i, slider_link in enumerate(self.slider_links):
+            index = self.all_slider_links.index(slider_link)
             self.sliders.itemAt(index).widget().setValue(0)
 
     def get_vectors(self, scalar):
         change_vector = self.IdealValues * scalar - self.soilValues
         sub_vectors = np.zeros(len(change_vector)) 
-        for i in range(len(self.slider_links)):
-            values = Files.getValues(self.slider_links[i])[0]
+        for i, slider_link in enumerate(self.slider_links):
+            values = Files.getValues(slider_link)[0]
             slider_value = self.sliders.itemAt(i).widget().value()
             change_vector -= values * slider_value
             sub_vectors = np.vstack((sub_vectors, values))
@@ -350,8 +350,8 @@ class Widgets(QWidget):
     def max_values(self):
         change_vector, sub_vectors = self.get_vectors(self.max_div_ideal)
         setValue, index = 0, 0 
-        for i in range(len(sub_vectors)):
-            temp = np.amin(change_vector/sub_vectors[i])
+        for i, sub_vector in enumerate(sub_vectors):
+            temp = np.amin(change_vector/sub_vector)
             if setValue < temp:
                 setValue = temp  
                 index = i
@@ -378,8 +378,8 @@ class DragDrop(QLineEdit):
     def dropEvent(self, event):
         data = event.mimeData()
         urls = data.urls()
-        for x in range(len(urls)):
-            url = str(urls[x].path())[1:]
+        for x, url in enumerate(urls):
+            url = str(url.path())[1:]
             if url[-5:].upper() == ".XLSX":
                 full_paths.append(url)
         MainWindow.Open(full_paths)
