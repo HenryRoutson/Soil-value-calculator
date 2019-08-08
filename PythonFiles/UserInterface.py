@@ -7,6 +7,7 @@ ideals out of frame
 popups
 closeall after main
 test values
+bold text on context menu
 pep8 http://pep8online.com/checkresult
 comments
 
@@ -29,7 +30,7 @@ from PyQt5.QtGui import *
 from matplotlib.backends.qt_compat import QtCore, QtWidgets, is_pyqt5
 from matplotlib.backends.backend_qt5agg import *
 from matplotlib.figure import Figure
-from matplotlib.animation import FuncAnimation
+import matplotlib.animation as animation
 matplotlib.use('TkAgg') # speed increase
 
 # modules
@@ -281,34 +282,28 @@ class Widgets(QWidget):
         self.update_graph()
 
     def update_graph(self):  
-        try:
-            self.soilValues, self.names = Files.getValues(self.soil_link)
-        except:
-            pass
-        try:
-            self.IdealValues, self.names = Files.getValues(self.ideal_link)
-        except:
-            pass
-    
-        self.ax.clear()
+        if self.soil_link != r"" and self.ideal_link != r"":
 
-        xs = np.arange(len(self.names))
-        self.ax.bar(xs, self.soilValues, color = "grey")
+            self.ax.clear()
 
-        bar_level = self.soilValues
-        for i, slider_link in enumerate(self.all_slider_links):
+            bar_level = Files.values(self.soil_link)[0]
+            xs = np.arange(len(Files.values(self.soil_link)[1]))
+            self.ax.bar(xs, Files.values(self.soil_link)[0], color = "grey")
+            
+            for i, slider_link in enumerate(self.all_slider_links):
 
-            slider_value = self.sliders.itemAt(i).widget().value()
-            ys = Files.getValues(slider_link)[0] * slider_value
-            self.ax.bar(xs, ys, bottom=bar_level, color=self.colors[i], edgecolor='black')
-            bar_level += ys
-            self.labels.itemAt(i).widget().setText(str(self.label_conversion*slider_value)[3:]+ self.label_unit)
+                slider_value = self.sliders.itemAt(i).widget().value()
+                ys = Files.values(slider_link)[0] * slider_value
+                self.ax.bar(xs, ys, bottom=bar_level, color=self.colors[i], edgecolor='black')
+                bar_level += ys
+                setText = str(round(self.label_conversion*slider_value,1)) + self.label_unit
+                self.labels.itemAt(i).widget().setText(setText)
 
-        self.ax.bar(xs, self.IdealValues, facecolor="None", edgecolor='green')
-        self.ax.bar(xs, self.IdealValues*self.max_div_ideal, facecolor="None", edgecolor='red')
-        self.ax.set_xticks(xs)
-        self.ax.set_xticklabels(self.names)
-        self.ax.figure.canvas.draw()
+            self.ax.bar(xs, Files.values(self.ideal_link)[0], facecolor="None", edgecolor='green')
+            self.ax.bar(xs, Files.values(self.ideal_link)[0]*self.max_div_ideal, facecolor="None", edgecolor='red')
+            self.ax.set_xticks(xs)
+            self.ax.set_xticklabels(Files.values(self.soil_link)[1])
+            self.ax.figure.canvas.draw()
 
     def context_menu_init(self):
         self.context_menu = QMenu(self)
@@ -341,10 +336,10 @@ class Widgets(QWidget):
             self.sliders.itemAt(index).widget().setValue(0)
 
     def get_vectors(self, scalar):
-        change_vector = self.IdealValues * scalar - self.soilValues
+        change_vector = Files.values(self.ideal_link)[0] * scalar - Files.values(self.soil_link)[0]
         sub_vectors = np.zeros(len(change_vector)) 
         for i, slider_link in enumerate(self.slider_links):
-            values = Files.getValues(slider_link)[0]
+            values = Files.values(slider_link)[0]
             slider_value = self.sliders.itemAt(i).widget().value()
             change_vector -= values * slider_value
             sub_vectors = np.vstack((sub_vectors, values))

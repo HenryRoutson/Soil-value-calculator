@@ -3,7 +3,7 @@ from xlutils.save import save
 import xlrd
 import os
 
-def getValues(path):
+def values(path):
 
         if path == "":
                 return [] , []
