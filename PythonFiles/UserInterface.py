@@ -1,8 +1,8 @@
 
 """
 to do :
-redefine values
 fix max and ideal
+subfunctions
 animation matplots
 ideals out of frame
 popups
@@ -10,6 +10,11 @@ closeall after main
 test values
 pep8 http://pep8online.com/checkresult
 comments
+
+sat:
+read
+testing
+realworld test
 """
 
 import os
@@ -91,8 +96,8 @@ class MainWindow(QMainWindow):
         HelpMenu.addAction(Documentation)
 
         # testing
-        self.Open(['C:/Users/henryro/OneDrive - Ballarat Grammar School/2019 Software/Sat/ExcelFiles/Compost 15mm 2018.xlsx', 'C:/Users/henryro/OneDrive - Ballarat Grammar School/2019 Software/Sat/ExcelFiles/Compost 15mmm 2018_Office.xlsx', 'C:/Users/henryro/OneDrive - Ballarat Grammar School/2019 Software/Sat/ExcelFiles/Compost 25mm 2018.xlsx', 'C:/Users/henryro/OneDrive - Ballarat Grammar School/2019 Software/Sat/ExcelFiles/Compost Geelong Sample.xlsx', 'C:/Users/henryro/OneDrive - Ballarat Grammar School/2019 Software/Sat/ExcelFiles/Ideal.xlsx', 'C:/Users/henryro/OneDrive - Ballarat Grammar School/2019 Software/Sat/ExcelFiles/Soil N.Cole Dam.xlsx', 'C:/Users/henryro/OneDrive - Ballarat Grammar School/2019 Software/Sat/ExcelFiles/Soil N.Cole Elephant Track.xlsx', 'C:/Users/henryro/OneDrive - Ballarat Grammar School/2019 Software/Sat/ExcelFiles/Soil N.Cole Little.xlsx', 'C:/Users/henryro/OneDrive - Ballarat Grammar School/2019 Software/Sat/ExcelFiles/Soil N.Cole Mail Box.xlsx', 'C:/Users/henryro/OneDrive - Ballarat Grammar School/2019 Software/Sat/ExcelFiles/Soil N.Cole School.xlsx'])
-        # self.Open(['C:/Users/henryro/OneDrive - Ballarat Grammar School/2019 Software/Sat/ExcelFilesTesting/Compost.xlsx', 'C:/Users/henryro/OneDrive - Ballarat Grammar School/2019 Software/Sat/ExcelFilesTesting/Ideal.xlsx', 'C:/Users/henryro/OneDrive - Ballarat Grammar School/2019 Software/Sat/ExcelFilesTesting/Soil.xlsx'])
+        # self.Open(['C:/Users/henryro/OneDrive - Ballarat Grammar School/2019 Software/Sat/ExcelFiles/Compost 15mm 2018.xlsx', 'C:/Users/henryro/OneDrive - Ballarat Grammar School/2019 Software/Sat/ExcelFiles/Compost 15mmm 2018_Office.xlsx', 'C:/Users/henryro/OneDrive - Ballarat Grammar School/2019 Software/Sat/ExcelFiles/Compost 25mm 2018.xlsx', 'C:/Users/henryro/OneDrive - Ballarat Grammar School/2019 Software/Sat/ExcelFiles/Compost Geelong Sample.xlsx', 'C:/Users/henryro/OneDrive - Ballarat Grammar School/2019 Software/Sat/ExcelFiles/Ideal.xlsx', 'C:/Users/henryro/OneDrive - Ballarat Grammar School/2019 Software/Sat/ExcelFiles/Soil N.Cole Dam.xlsx', 'C:/Users/henryro/OneDrive - Ballarat Grammar School/2019 Software/Sat/ExcelFiles/Soil N.Cole Elephant Track.xlsx', 'C:/Users/henryro/OneDrive - Ballarat Grammar School/2019 Software/Sat/ExcelFiles/Soil N.Cole Little.xlsx', 'C:/Users/henryro/OneDrive - Ballarat Grammar School/2019 Software/Sat/ExcelFiles/Soil N.Cole Mail Box.xlsx', 'C:/Users/henryro/OneDrive - Ballarat Grammar School/2019 Software/Sat/ExcelFiles/Soil N.Cole School.xlsx'])
+        self.Open(['C:/Users/henryro/OneDrive - Ballarat Grammar School/2019 Software/Sat/ExcelFilesTesting/Compost.xlsx', 'C:/Users/henryro/OneDrive - Ballarat Grammar School/2019 Software/Sat/ExcelFilesTesting/Ideal.xlsx', 'C:/Users/henryro/OneDrive - Ballarat Grammar School/2019 Software/Sat/ExcelFilesTesting/Soil.xlsx'])
 
     def Open(self, full_paths):
         if full_paths == False:
@@ -143,21 +148,16 @@ class QCustomSlider(QSlider):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        self._min_value = 0.00
-        self._max_value = 0.05
-        self._max_int = 1000
-
+        self.max_float = 0.05
         super().setMinimum(0)
-        super().setMaximum(self._max_int)
-
-    def _value_range(self):
-        return self._max_value - self._min_value
+        super().setMaximum(500)
+        
 
     def value(self):
-        return float(super().value()) / self._max_int * self._value_range() + self._min_value
+        return super().value() / super().maximum() * self.max_float
 
     def setValue(self, value):
-        super().setValue(int((value - self._min_value) / self._value_range() * self._max_int))
+        super().setValue( int( value / self.max_float * super().maximum() ) )
 
     # https://github.com/PyQt5/PyQt/blob/master/QSlider/ClickJumpSlider.py
     def mousePressEvent(self, event):
@@ -192,11 +192,11 @@ class Widgets(QWidget):
 
         self.sliders = QHBoxLayout()
         self.buttons = QHBoxLayout()
-        self.values = QHBoxLayout()
+        self.labels = QHBoxLayout()
 
         self.slider_layout.addLayout(self.sliders)
         self.slider_layout.addLayout(self.buttons)
-        self.slider_layout.addLayout(self.values)
+        self.slider_layout.addLayout(self.labels)
 
         self.all_slider_links = []
         self.slider_links = []
@@ -239,13 +239,13 @@ class Widgets(QWidget):
         
         self.sliders.addWidget(custom_slider)
         self.buttons.addWidget(button) 
-        self.values.addWidget(QLabel("0 T/Ha"))
+        self.labels.addWidget(QLabel("0 T/Ha"))
 
     def delete_slider(self, button):
         index = self.buttons.indexOf(button)
         self.buttons.itemAt(index).widget().setParent(None)
         self.sliders.itemAt(index).widget().setParent(None)
-        self.values.itemAt(index).widget().setParent(None)
+        self.labels.itemAt(index).widget().setParent(None)
         del self.all_slider_links[index]
         del self.colors[index]
         self.update_graph()
@@ -283,14 +283,14 @@ class Widgets(QWidget):
         xs = np.arange(len(self.names))
         self.ax.bar(xs, self.soilValues, color = "grey")
 
-        values_sum = self.soilValues
+        bar_level = self.soilValues
         for index in range(self.sliders.count()):
             slider_value = self.sliders.itemAt(index).widget().value()
             ys = Files.getValues(self.all_slider_links[index])[0]*slider_value
-            self.ax.bar(xs, ys, bottom=values_sum, color=self.colors[index], edgecolor='black')
-            values_sum += ys
+            self.ax.bar(xs, ys, bottom=bar_level, color=self.colors[index], edgecolor='black')
+            bar_level += ys
             T_Ha = round(1330*slider_value,1)
-            self.values.itemAt(index).widget().setText(str(T_Ha)+" T/Ha")
+            self.labels.itemAt(index).widget().setText(str(T_Ha)+" T/Ha")
 
         self.ax.bar(xs, self.IdealValues, facecolor="None", edgecolor='green')
         self.ax.bar(xs, self.IdealValues*self.max_div_ideal, facecolor="None", edgecolor='red')
@@ -328,8 +328,8 @@ class Widgets(QWidget):
             index = self.all_slider_links.index(self.slider_links[i])
             self.sliders.itemAt(index).widget().setValue(0)
 
-    def get_vectors(self, ideal_scalar):
-        change_vector = self.IdealValues * ideal_scalar - self.soilValues
+    def get_vectors(self, scalar):
+        change_vector = self.IdealValues * scalar - self.soilValues
         sub_vectors = np.zeros(len(change_vector)) 
         for i in range(len(self.slider_links)):
             values = Files.getValues(self.slider_links[i])[0]
@@ -357,6 +357,7 @@ class Widgets(QWidget):
                 index = i
         if len(self.slider_links) == 1:
             index = self.all_slider_links.index(self.slider_links[0])
+        setValue += self.sliders.itemAt(index).widget().value()
         self.sliders.itemAt(index).widget().setValue(setValue)
    
 class DragDrop(QLineEdit):
