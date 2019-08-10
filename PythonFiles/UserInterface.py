@@ -320,12 +320,7 @@ class Widgets(QWidget):
         self.update_values(self.bars[-2], Files.values(self.ideal_link)[0])
         self.update_values(self.bars[-1], Files.values(self.ideal_link)[0]*self.max_div_ideal)
 
-        temp = []
-        for x in self.bars:
-            for y in x:
-                temp.append(y)
-
-        return temp
+        return np.array(self.bars).ravel()
         
     def context_menu_init(self):
         self.context_menu = QMenu(self)
