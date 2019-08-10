@@ -1,10 +1,9 @@
 
 """
 to do :
-fix delete
 fix max and ideal
 ideals out of frame
-save and verify files
+save files
 popups
 closeall after main
 test values
@@ -259,7 +258,7 @@ class Widgets(QWidget):
         self.buttons.itemAt(index).widget().setParent(None)
         self.sliders.itemAt(index).widget().setParent(None)
         self.labels.itemAt(index).widget().setParent(None)
-        del self.bars[index]
+        self.bars[index].remove()
         del self.all_slider_links[index]
         del self.colors[index]
 
@@ -280,27 +279,24 @@ class Widgets(QWidget):
         self.ideal_link = r""
 
     def init_graph(self):  
-        self.FuncAnimation = 0
+        
         self.ax.clear()
         self.bars = []
-        bar_level = Files.values(self.soil_link)[0]
-        xs = np.arange(len(Files.values(self.soil_link)[1]))
-        
+        xs = np.arange(len(Files.values(self.soil_link)[0]))
+        ys = np.zeros(len(Files.values(self.soil_link)[0]))
+
         for i, slider_link in enumerate(self.all_slider_links):
-
-            slider_value = self.sliders.itemAt(i).widget().value()
-            ys = Files.values(slider_link)[0] * 0
-            self.bars.append(self.ax.bar(xs, ys, bottom=bar_level, color=self.colors[i], edgecolor='black'))
-            bar_level += ys
-
+            self.bars.append(self.ax.bar(xs, ys, color=self.colors[i], edgecolor='black'))
+            
+        # using real values sets a propper frame
         self.bars.append(self.ax.bar(xs, Files.values(self.soil_link)[0], color = "grey"))
         self.bars.append(self.ax.bar(xs, Files.values(self.ideal_link)[0], facecolor="None", edgecolor='green'))
         self.bars.append(self.ax.bar(xs, Files.values(self.ideal_link)[0]*self.max_div_ideal, facecolor="None", edgecolor='red'))
         self.ax.set_xticks(xs)
         self.ax.set_xticklabels(Files.values(self.soil_link)[1])
 
+        self.FuncAnimation = None
         self.FuncAnimation = animation.FuncAnimation(self.fig,self.ani) # ,blit=True
-        self.ax.figure.canvas.draw()
 
     def update_values(self, bars, values, bottom = []):
         for i, bar in enumerate(bars):
@@ -309,10 +305,7 @@ class Widgets(QWidget):
             for i, bar in enumerate(bars):
                 bar.set_y(bottom[i])
 
-    # add bottom
     def ani(self, unused):
-        
-
         bar_level = Files.values(self.soil_link)[0]
         for i, slider_link in enumerate(self.all_slider_links):
             slider_value = self.sliders.itemAt(i).widget().value()
