@@ -15,12 +15,14 @@ def values(path):
 
         def TryFloat(In):
                 try:
-                        return float(In)
+                        return abs(float(In))
                 except:
-                        # >5
-                        return float(In[1:])
+                        try:
+                                # >5
+                                return abs(float(In[1:]))
+                        except:
+                                return 0
 
-        G_SQM = 133000
         for x in range(6,19):
                 Elements.append(File.cell(x, 1).value)
 
@@ -30,11 +32,11 @@ def values(path):
                 if measure == "mg/kg":
                         Results.append(value/(10**6))
                 elif measure == "g/sqm":
-                        Results.append(value/G_SQM)
+                        Results.append(value/133000)
                 elif measure == "%":
                         Results.append(value/100)
                 else:
-                        print("No measure - use mg/kg, g/sqm or %")
+                        Results.append(0)
 
         return np.array(Results), np.array(Elements)
 

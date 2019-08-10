@@ -1,9 +1,10 @@
 
 """
 to do :
+fix delete
 fix max and ideal
-animation matplots
 ideals out of frame
+save and verify files
 popups
 closeall after main
 test values
@@ -104,8 +105,8 @@ class MainWindow(QMainWindow):
         HelpMenu.addAction(Documentation)
 
         # testing
-        # self.Open(['C:/Users/henryro/OneDrive - Ballarat Grammar School/2019 Software/Sat/ExcelFiles/Compost 15mm 2018.xlsx', 'C:/Users/henryro/OneDrive - Ballarat Grammar School/2019 Software/Sat/ExcelFiles/Compost 15mmm 2018_Office.xlsx', 'C:/Users/henryro/OneDrive - Ballarat Grammar School/2019 Software/Sat/ExcelFiles/Compost 25mm 2018.xlsx', 'C:/Users/henryro/OneDrive - Ballarat Grammar School/2019 Software/Sat/ExcelFiles/Compost Geelong Sample.xlsx', 'C:/Users/henryro/OneDrive - Ballarat Grammar School/2019 Software/Sat/ExcelFiles/Ideal.xlsx', 'C:/Users/henryro/OneDrive - Ballarat Grammar School/2019 Software/Sat/ExcelFiles/Soil N.Cole Dam.xlsx', 'C:/Users/henryro/OneDrive - Ballarat Grammar School/2019 Software/Sat/ExcelFiles/Soil N.Cole Elephant Track.xlsx', 'C:/Users/henryro/OneDrive - Ballarat Grammar School/2019 Software/Sat/ExcelFiles/Soil N.Cole Little.xlsx', 'C:/Users/henryro/OneDrive - Ballarat Grammar School/2019 Software/Sat/ExcelFiles/Soil N.Cole Mail Box.xlsx', 'C:/Users/henryro/OneDrive - Ballarat Grammar School/2019 Software/Sat/ExcelFiles/Soil N.Cole School.xlsx'])
-        self.Open(['C:/Users/henryro/OneDrive - Ballarat Grammar School/2019 Software/Sat/ExcelFilesTesting/Compost.xlsx', 'C:/Users/henryro/OneDrive - Ballarat Grammar School/2019 Software/Sat/ExcelFilesTesting/Ideal.xlsx', 'C:/Users/henryro/OneDrive - Ballarat Grammar School/2019 Software/Sat/ExcelFilesTesting/Soil.xlsx'])
+        self.Open(['C:/Users/henryro/OneDrive - Ballarat Grammar School/2019 Software/Sat/ExcelFiles/Compost 15mm 2018.xlsx', 'C:/Users/henryro/OneDrive - Ballarat Grammar School/2019 Software/Sat/ExcelFiles/Compost 15mmm 2018_Office.xlsx', 'C:/Users/henryro/OneDrive - Ballarat Grammar School/2019 Software/Sat/ExcelFiles/Compost 25mm 2018.xlsx', 'C:/Users/henryro/OneDrive - Ballarat Grammar School/2019 Software/Sat/ExcelFiles/Compost Geelong Sample.xlsx', 'C:/Users/henryro/OneDrive - Ballarat Grammar School/2019 Software/Sat/ExcelFiles/Ideal.xlsx', 'C:/Users/henryro/OneDrive - Ballarat Grammar School/2019 Software/Sat/ExcelFiles/Soil N.Cole Dam.xlsx', 'C:/Users/henryro/OneDrive - Ballarat Grammar School/2019 Software/Sat/ExcelFiles/Soil N.Cole Elephant Track.xlsx', 'C:/Users/henryro/OneDrive - Ballarat Grammar School/2019 Software/Sat/ExcelFiles/Soil N.Cole Little.xlsx', 'C:/Users/henryro/OneDrive - Ballarat Grammar School/2019 Software/Sat/ExcelFiles/Soil N.Cole Mail Box.xlsx', 'C:/Users/henryro/OneDrive - Ballarat Grammar School/2019 Software/Sat/ExcelFiles/Soil N.Cole School.xlsx'])
+        # self.Open(['C:/Users/henryro/OneDrive - Ballarat Grammar School/2019 Software/Sat/ExcelFilesTesting/Compost.xlsx', 'C:/Users/henryro/OneDrive - Ballarat Grammar School/2019 Software/Sat/ExcelFilesTesting/Ideal.xlsx', 'C:/Users/henryro/OneDrive - Ballarat Grammar School/2019 Software/Sat/ExcelFilesTesting/Soil.xlsx'])
 
     def Open(self, full_paths):
         if full_paths == False:
@@ -118,7 +119,8 @@ class MainWindow(QMainWindow):
                 self.Widgets.soil_link = full_path
             else:
                 self.Widgets.create_slider(full_path)
-        self.Widgets.update_graph()
+        if self.Widgets.soil_link != r"" and self.Widgets.ideal_link != r"":
+            self.Widgets.init_graph()
 
     def DragAndDrop(self):
         self.DragDrop = DragDrop()
@@ -135,7 +137,6 @@ class MainWindow(QMainWindow):
             pass
         self.Widgets.setStyleSheet("font: "+str(self.text_size_value)+"pt")
         rcParams.update({'font.size': self.text_size_value + 3})
-        self.Widgets.update_graph() # remove after animation
 
     def light_dark(self):
         if self.color_index > len(self.color_options):
@@ -149,7 +150,6 @@ class MainWindow(QMainWindow):
         self.setStyleSheet("QWidget { background-color: "+self.color+" }")
         self.Widgets.ax.set_facecolor(self.color)
         self.Widgets.fig.set_facecolor(self.color)
-        self.Widgets.update_graph()
 
 class QCustomSlider(QSlider):
 
@@ -160,7 +160,6 @@ class QCustomSlider(QSlider):
         super().setMinimum(0)
         super().setMaximum(500)
         
-
     def value(self):
         return super().value() / super().maximum() * self.max_float
 
@@ -188,6 +187,7 @@ class Widgets(QWidget):
         super().__init__(parent)
 
         "preferences"
+
         # functional
         self.max_div_ideal = 4
         self.label_conversion = 1330
@@ -242,7 +242,6 @@ class Widgets(QWidget):
         self.color_pos += 1
         self.colors.append(hex_color)
         custom_slider.setStyleSheet("QSlider::handle:vertical {background-color: "+hex_color+";}")
-        custom_slider.valueChanged.connect(self.update_graph) # change after animation
         
         button = QPushButton()
         button.setStyleSheet("QPushButton:hover:!pressed { border: 2px solid red; }")
@@ -260,9 +259,9 @@ class Widgets(QWidget):
         self.buttons.itemAt(index).widget().setParent(None)
         self.sliders.itemAt(index).widget().setParent(None)
         self.labels.itemAt(index).widget().setParent(None)
+        del self.bars[index]
         del self.all_slider_links[index]
         del self.colors[index]
-        self.update_graph()
 
     def graph_init(self):
         self.graph  = QVBoxLayout()
@@ -279,32 +278,56 @@ class Widgets(QWidget):
         self.ax = canvas.figure.subplots()
         self.soil_link = r""
         self.ideal_link = r""
-        self.update_graph()
 
-    def update_graph(self):  
-        if self.soil_link != r"" and self.ideal_link != r"":
+    def init_graph(self):  
+        self.FuncAnimation = 0
+        self.ax.clear()
+        self.bars = []
+        bar_level = Files.values(self.soil_link)[0]
+        xs = np.arange(len(Files.values(self.soil_link)[1]))
+        
+        for i, slider_link in enumerate(self.all_slider_links):
 
-            self.ax.clear()
+            slider_value = self.sliders.itemAt(i).widget().value()
+            ys = Files.values(slider_link)[0] * 0
+            self.bars.append(self.ax.bar(xs, ys, bottom=bar_level, color=self.colors[i], edgecolor='black'))
+            bar_level += ys
 
-            bar_level = Files.values(self.soil_link)[0]
-            xs = np.arange(len(Files.values(self.soil_link)[1]))
-            self.ax.bar(xs, Files.values(self.soil_link)[0], color = "grey")
-            
-            for i, slider_link in enumerate(self.all_slider_links):
+        self.bars.append(self.ax.bar(xs, Files.values(self.soil_link)[0], color = "grey"))
+        self.bars.append(self.ax.bar(xs, Files.values(self.ideal_link)[0], facecolor="None", edgecolor='green'))
+        self.bars.append(self.ax.bar(xs, Files.values(self.ideal_link)[0]*self.max_div_ideal, facecolor="None", edgecolor='red'))
+        self.ax.set_xticks(xs)
+        self.ax.set_xticklabels(Files.values(self.soil_link)[1])
 
-                slider_value = self.sliders.itemAt(i).widget().value()
-                ys = Files.values(slider_link)[0] * slider_value
-                self.ax.bar(xs, ys, bottom=bar_level, color=self.colors[i], edgecolor='black')
-                bar_level += ys
-                setText = str(round(self.label_conversion*slider_value,1)) + self.label_unit
-                self.labels.itemAt(i).widget().setText(setText)
+        self.FuncAnimation = animation.FuncAnimation(self.fig,self.ani) # ,blit=True
+        self.ax.figure.canvas.draw()
 
-            self.ax.bar(xs, Files.values(self.ideal_link)[0], facecolor="None", edgecolor='green')
-            self.ax.bar(xs, Files.values(self.ideal_link)[0]*self.max_div_ideal, facecolor="None", edgecolor='red')
-            self.ax.set_xticks(xs)
-            self.ax.set_xticklabels(Files.values(self.soil_link)[1])
-            self.ax.figure.canvas.draw()
+    def update_values(self, bars, values, bottom = []):
+        for i, bar in enumerate(bars):
+            bar.set_height(values[i])
+        if bottom != []:
+            for i, bar in enumerate(bars):
+                bar.set_y(bottom[i])
 
+    # add bottom
+    def ani(self, unused):
+        
+
+        bar_level = Files.values(self.soil_link)[0]
+        for i, slider_link in enumerate(self.all_slider_links):
+            slider_value = self.sliders.itemAt(i).widget().value()
+            ys = Files.values(slider_link)[0] * slider_value
+            self.update_values(self.bars[i], ys ,bar_level)
+            bar_level += ys
+            setText = str(round(self.label_conversion*slider_value,1)) + self.label_unit
+            self.labels.itemAt(i).widget().setText(setText)
+
+        self.update_values(self.bars[-3], Files.values(self.soil_link)[0])
+        self.update_values(self.bars[-2], Files.values(self.ideal_link)[0])
+        self.update_values(self.bars[-1], Files.values(self.ideal_link)[0]*self.max_div_ideal)
+
+        return self.bars
+        
     def context_menu_init(self):
         self.context_menu = QMenu(self)
 
