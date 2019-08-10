@@ -31,7 +31,7 @@ from matplotlib.backends.qt_compat import QtCore, QtWidgets, is_pyqt5
 from matplotlib.backends.backend_qt5agg import *
 from matplotlib.figure import Figure
 import matplotlib.animation as animation
-matplotlib.use('TkAgg') # speed increase
+matplotlib.use('TkAgg') # fastest backend
 
 # modules
 import Adviser
@@ -219,7 +219,7 @@ class Widgets(QWidget):
         self.index = 0
     
         # viridis for color blind
-        cmap = cm.get_cmap('viridis', 8)
+        cmap = cm.get_cmap('viridis', 10)
         for i in range(cmap.N):
             rgb = cmap(i)[:3]
             self.color_options.append(matplotlib.colors.rgb2hex(rgb))
@@ -235,7 +235,7 @@ class Widgets(QWidget):
         slider = QSlider(Qt.Vertical)
         custom_slider = QCustomSlider(slider)
 
-        if self.color_pos == len(self.color_options):
+        if self.color_pos == len(self.color_options)-1:
             self.color_pos = 0
         hex_color = self.color_options[self.color_pos]
         self.color_pos += 1
@@ -259,6 +259,7 @@ class Widgets(QWidget):
         self.sliders.itemAt(index).widget().setParent(None)
         self.labels.itemAt(index).widget().setParent(None)
         self.bars[index].remove()
+        del self.bars[index]
         del self.all_slider_links[index]
         del self.colors[index]
 
@@ -306,12 +307,12 @@ class Widgets(QWidget):
                 bar.set_y(bottom[i])
 
     def ani(self, unused):
-        bar_level = Files.values(self.soil_link)[0]
+        bottom = Files.values(self.soil_link)[0]
         for i, slider_link in enumerate(self.all_slider_links):
             slider_value = self.sliders.itemAt(i).widget().value()
             ys = Files.values(slider_link)[0] * slider_value
-            self.update_values(self.bars[i], ys ,bar_level)
-            bar_level += ys
+            self.update_values(self.bars[i], ys ,bottom)
+            bottom += ys
             setText = str(round(self.label_conversion*slider_value,1)) + self.label_unit
             self.labels.itemAt(i).widget().setText(setText)
 
@@ -319,7 +320,9 @@ class Widgets(QWidget):
         self.update_values(self.bars[-2], Files.values(self.ideal_link)[0])
         self.update_values(self.bars[-1], Files.values(self.ideal_link)[0]*self.max_div_ideal)
 
-        return self.bars
+        # reshape 
+        # tuple(self.bars)
+        # return
         
     def context_menu_init(self):
         self.context_menu = QMenu(self)
