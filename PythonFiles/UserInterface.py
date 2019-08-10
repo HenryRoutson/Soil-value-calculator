@@ -1,25 +1,16 @@
-
 """
 to do :
 fix max and ideal
-ideals out of frame
 save files
-popups
 closeall after main
-test values
-bold text on context menu
 pep8 http://pep8online.com/checkresult
 comments
-
-sat:
-read
-testing
-realworld test
 """
 
 import os
 import sys
 import re
+import shutil
 import numpy as np
 from pylab import *
 
@@ -110,7 +101,11 @@ class MainWindow(QMainWindow):
     def Open(self, full_paths):
         if full_paths == False:
             full_paths = QFileDialog.getOpenFileNames(self,'Open File')[0]
+        for i, url in enumerate(full_paths):
+            if url[-5:].upper() != ".XLSX":
+                del full_paths[i]
         for full_path in full_paths:
+            shutil.copy(full_path, "AllExcelFilesBackup")
             name =  os.path.basename(full_path)
             if re.search("IDEAL", name.upper()):
                 self.Widgets.ideal_link = full_path
@@ -403,9 +398,7 @@ class DragDrop(QLineEdit):
         data = event.mimeData()
         urls = data.urls()
         for x, url in enumerate(urls):
-            url = str(url.path())[1:]
-            if url[-5:].upper() == ".XLSX":
-                full_paths.append(url)
+            full_paths.append(str(url.path())[1:])
         MainWindow.Open(full_paths)
         self.close()
 
