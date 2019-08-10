@@ -1,8 +1,8 @@
 """
 to do :
 fix max and ideal
-save files
 closeall after main
+fix blinking
 pep8 http://pep8online.com/checkresult
 comments
 """
@@ -37,9 +37,8 @@ class MainWindow(QMainWindow):
 
         # look
         self.text_size_value = 9
-        self.light_mode = True
-        self.color_index = 0 # index += 1 
-        self.color_options = ["#9c9c9c", "#EBEBEB"]
+        self.main_color = 0 # += 1 for default
+        self.main_colors = ["#9c9c9c", "#EBEBEB"]
 
         self.setWindowTitle('GUI')
         self.setWindowIcon(QIcon('pythonlogo.png'))
@@ -133,17 +132,17 @@ class MainWindow(QMainWindow):
         rcParams.update({'font.size': self.text_size_value + 3})
 
     def light_dark(self):
-        if self.color_index > len(self.color_options):
-            self.color_index = 0
+        if self.main_color >= len(self.main_colors)-1:
+            self.main_color = 0
         else:
-            self.color_index += 1
-        self.color = self.color_options[self.color_index]
+            self.main_color += 1
         self.update_color()
 
     def update_color(self):
-        self.setStyleSheet("QWidget { background-color: "+self.color+" }")
-        self.Widgets.ax.set_facecolor(self.color)
-        self.Widgets.fig.set_facecolor(self.color)
+        self.setStyleSheet("QWidget { background-color: "+self.main_colors[self.main_color]+" }")
+        self.Widgets.ax.set_facecolor(self.main_colors[self.main_color])
+        self.Widgets.fig.set_facecolor(self.main_colors[self.main_color])
+        self.Widgets.init_graph()
 
 class QCustomSlider(QSlider):
 
@@ -208,16 +207,15 @@ class Widgets(QWidget):
 
         self.all_slider_links = []
         self.slider_links = []
-        self.color_options = []
-        self.colors = []
-        self.color_pos = 0
-        self.index = 0
+        self.all_slider_colors = []
+        self.slider_colors = []
+        self.slider_color_pos = 0
     
         # viridis for color blind
         cmap = cm.get_cmap('viridis', 10)
         for i in range(cmap.N):
             rgb = cmap(i)[:3]
-            self.color_options.append(matplotlib.colors.rgb2hex(rgb))
+            self.all_slider_colors.append(matplotlib.colors.rgb2hex(rgb))
 
     def create_slider(self,path):
 
@@ -230,11 +228,11 @@ class Widgets(QWidget):
         slider = QSlider(Qt.Vertical)
         custom_slider = QCustomSlider(slider)
 
-        if self.color_pos == len(self.color_options)-1:
-            self.color_pos = 0
-        hex_color = self.color_options[self.color_pos]
-        self.color_pos += 1
-        self.colors.append(hex_color)
+        if self.slider_color_pos == len(self.all_slider_colors)-1:
+            self.slider_color_pos = 0
+        hex_color = self.all_slider_colors[self.slider_color_pos]
+        self.slider_color_pos += 1
+        self.slider_colors.append(hex_color)
         custom_slider.setStyleSheet("QSlider::handle:vertical {background-color: "+hex_color+";}")
         
         button = QPushButton()
@@ -256,7 +254,7 @@ class Widgets(QWidget):
         self.bars[index].remove()
         del self.bars[index]
         del self.all_slider_links[index]
-        del self.colors[index]
+        del self.slider_colors[index]
 
     def graph_init(self):
         self.graph  = QVBoxLayout()
@@ -270,19 +268,17 @@ class Widgets(QWidget):
         toolbar = NavigationToolbar2QT(canvas, self)
         self.graph.addWidget(toolbar)
 
-        self.ax = canvas.figure.subplots()
         self.soil_link = r""
         self.ideal_link = r""
 
     def init_graph(self):  
-        
-        self.ax.clear()
+        self.ax = canvas.figure.subplots()
         self.bars = []
         xs = np.arange(len(Files.values(self.soil_link)[0]))
         ys = np.zeros(len(Files.values(self.soil_link)[0]))
 
         for i, slider_link in enumerate(self.all_slider_links):
-            self.bars.append(self.ax.bar(xs, ys, color=self.colors[i], edgecolor='black'))
+            self.bars.append(self.ax.bar(xs, ys, color=self.slider_colors[i], edgecolor='black'))
             
         # using real values sets a propper frame
         self.bars.append(self.ax.bar(xs, Files.values(self.soil_link)[0], color = "grey"))
@@ -291,8 +287,7 @@ class Widgets(QWidget):
         self.ax.set_xticks(xs)
         self.ax.set_xticklabels(Files.values(self.soil_link)[1])
 
-        self.FuncAnimation = None
-        self.FuncAnimation = animation.FuncAnimation(self.fig,self.ani,interval=0,blit=True)
+        self.FuncAnimation = animation.FuncAnimation(self.fig,self.update_graph,interval=0,blit=True)
 
     def update_values(self, bars, values, bottom = []):
         for i, bar in enumerate(bars):
@@ -301,7 +296,7 @@ class Widgets(QWidget):
             for i, bar in enumerate(bars):
                 bar.set_y(bottom[i])
 
-    def ani(self, unused):
+    def update_graph(self, frames):
         bottom = Files.values(self.soil_link)[0]
         for i, slider_link in enumerate(self.all_slider_links):
             slider_value = self.sliders.itemAt(i).widget().value()
