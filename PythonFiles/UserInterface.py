@@ -297,7 +297,7 @@ class Widgets(QWidget):
         self.ax.set_xticklabels(Files.values(self.soil_link)[1])
 
         self.FuncAnimation = None
-        self.FuncAnimation = animation.FuncAnimation(self.fig,self.ani) # ,blit=True
+        self.FuncAnimation = animation.FuncAnimation(self.fig,self.ani,interval=0,blit=True)
 
     def update_values(self, bars, values, bottom = []):
         for i, bar in enumerate(bars):
@@ -320,9 +320,12 @@ class Widgets(QWidget):
         self.update_values(self.bars[-2], Files.values(self.ideal_link)[0])
         self.update_values(self.bars[-1], Files.values(self.ideal_link)[0]*self.max_div_ideal)
 
-        # reshape 
-        # tuple(self.bars)
-        # return
+        temp = []
+        for x in self.bars:
+            for y in x:
+                temp.append(y)
+
+        return temp
         
     def context_menu_init(self):
         self.context_menu = QMenu(self)
