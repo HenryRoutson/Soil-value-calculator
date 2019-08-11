@@ -1,6 +1,6 @@
 """
 to do :
-fix text size
+fix vibrating
 fix max and ideal
 closeall after main
 pep8 http://pep8online.com/checkresult
@@ -134,7 +134,7 @@ class MainWindow(QMainWindow):
                 self.text_size += -change
 
         self.Widgets.setStyleSheet("font: "+str(self.text_size)+"pt")
-        rcParams.update({'font.size': self.text_size + 3})
+        matplotlib.rcParams.update({'font.size': self.text_size + 3 })
         self.Widgets.start_graph()
 
     def light_dark(self):
@@ -289,7 +289,11 @@ class Widgets(QWidget):
     def start_graph(self): 
         if self.soil_path == "" or self.ideal_path == "":
             return
-        
+
+        # graph is cleared to update color, text size and so on
+        # updating these when they are changed helps performance
+        self.ax.clear()
+
         self.bars = []
         length = len(Files.values(self.soil_path)[0])
         # np.arrays help performance 
