@@ -2,7 +2,6 @@
 to do :
 fix vibrating
 fix max and ideal
-closeall after main
 pep8 http://pep8online.com/checkresult
 """
 
@@ -123,6 +122,12 @@ class MainWindow(QMainWindow):
     def DragAndDrop(self):
         self.DragDrop = DragDrop()
         self.Widgets.start_graph()
+
+    def closeEvent(self, event):
+        try:
+            self.DragDrop.close()
+        except:
+            pass
 
     def change_text_size(self):
 
