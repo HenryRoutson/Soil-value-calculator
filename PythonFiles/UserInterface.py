@@ -1,9 +1,7 @@
 """
 to do :
-fix matplotlib update
-test text try
+fix text size
 fix max and ideal
-fix blinking
 closeall after main
 pep8 http://pep8online.com/checkresult
 """
@@ -38,7 +36,7 @@ class MainWindow(QMainWindow):
 
         # look
         self.text_size = 9
-        self.main_color = 0 # the next index color is set
+        self.main_color = 0 # the next index color is used on start
         self.main_colors = ["#9c9c9c", "#EBEBEB"]
         self.setWindowTitle('GUI')
         self.setWindowIcon(QIcon('pythonlogo.png'))
@@ -110,7 +108,7 @@ class MainWindow(QMainWindow):
                 del full_paths[i]
 
         # copy paths to AllExcelFilesBackup
-        # update paths for program
+        # update paths for graph and start
         for full_path in full_paths:
             shutil.copy(full_path, "AllExcelFilesBackup")
             name =  os.path.basename(full_path)
@@ -120,13 +118,11 @@ class MainWindow(QMainWindow):
                 self.Widgets.soil_path = full_path
             else:
                 self.Widgets.create_slider(full_path)
-
-        # initialise the graph
-        if self.Widgets.soil_path != r"" and self.Widgets.ideal_path != r"":
-            self.Widgets.init_graph()
+        self.Widgets.start_graph()
 
     def DragAndDrop(self):
         self.DragDrop = DragDrop()
+        self.Widgets.start_graph()
 
     def change_text_size(self):
 
@@ -139,19 +135,19 @@ class MainWindow(QMainWindow):
 
         self.Widgets.setStyleSheet("font: "+str(self.text_size)+"pt")
         rcParams.update({'font.size': self.text_size + 3})
+        self.Widgets.start_graph()
 
     def light_dark(self):
         if self.main_color >= len(self.main_colors)-1:
             self.main_color = 0
         else:
             self.main_color += 1
-        self.update_color()
 
-    def update_color(self):
         self.setStyleSheet("QWidget { background-color: "+self.main_colors[self.main_color]+" }")
         self.Widgets.ax.set_facecolor(self.main_colors[self.main_color])
         self.Widgets.fig.set_facecolor(self.main_colors[self.main_color])
-
+        self.Widgets.start_graph()
+       
 class QCustomSlider(QSlider):
 
     def __init__(self, *args, **kwargs):
@@ -195,7 +191,7 @@ class Widgets(QWidget):
 
         # functional
         self.max_div_ideal = 4
-        self.label_conversion = 1330
+        self.label_conversion = 1330 # 1330T T/Ha soil * percent compost added to soil
         self.label_unit = " T/Ha"
 
         self.Layout = QHBoxLayout()
@@ -245,7 +241,7 @@ class Widgets(QWidget):
         custom_slider = QCustomSlider(slider)
 
         # go to start if out of colors
-        if self.slider_color_pos == len(self.all_slider_colors)-1:
+        if self.slider_color_pos >= len(self.all_slider_colors)-1:
             self.slider_color_pos = 0
 
         hex_color = self.all_slider_colors[self.slider_color_pos]
@@ -286,13 +282,17 @@ class Widgets(QWidget):
         toolbar = NavigationToolbar2QT(canvas, self)
         self.graph.addWidget(toolbar)
         self.ax = canvas.figure.subplots()
-        self.soil_path = r""
-        self.ideal_path = r""
+        self.soil_path = ""
+        self.ideal_path = ""
+        self.FuncAnimation = None
 
-    def init_graph(self): 
-        # np.arrays help performance 
+    def start_graph(self): 
+        if self.soil_path == "" or self.ideal_path == "":
+            return
+        
         self.bars = []
         length = len(Files.values(self.soil_path)[0])
+        # np.arrays help performance 
         xs = np.arange(length) # 1,2,3
         ys = np.zeros(length) # 0,0,0
 
@@ -306,6 +306,9 @@ class Widgets(QWidget):
         self.ax.set_xticks(xs)
         self.ax.set_xticklabels(Files.values(self.soil_path)[1])
 
+        if self.FuncAnimation != None:
+            # deletes old graph
+            self.FuncAnimation.event_source.stop()
         # blit avoids redrawing and helps performance
         self.FuncAnimation = animation.FuncAnimation(self.fig,self.update_graph,interval=0,blit=True)
 
@@ -350,12 +353,11 @@ class Widgets(QWidget):
         self.context_menu.addAction(max_values)
 
     def contextMenuEvent(self, event):
-        """
-        if contextMenuEvent is above a slider button
-        set slider_paths to that slider_path
-        so ideal_values for example, will only run over that path
-        without needing a separate single path function
-        """
+        # if contextMenuEvent is above a slider button
+        # set slider_paths to that slider_path
+        # so ideal_values for example, will only run over that path
+        # without needing a separate single path function
+        
         self.slider_paths = self.all_slider_paths
         for index in range(self.buttons.count()):
             widget = self.buttons.itemAt(index).widget().geometry()
@@ -401,7 +403,7 @@ class Widgets(QWidget):
         change_vector, sub_vectors = self.get_vectors(self.max_div_ideal)
         setValue, index = 0, 0 
 
-        # find the largest distance one of the sliders can go before going over the limits
+        # find the which compost can be put on the most witout going over limits
         for i, sub_vector in enumerate(sub_vectors):
             temp = np.amin(change_vector/sub_vector)
             if setValue < temp:
