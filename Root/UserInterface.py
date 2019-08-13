@@ -1,5 +1,6 @@
 """
 to do :
+fix max inf bug
 fix vibrating
 fix max and ideal
 pep8 http://pep8online.com/checkresult
@@ -109,7 +110,7 @@ class MainWindow(QMainWindow):
         # copy paths to AllExcelFilesBackup
         # update paths for graph and start
         for full_path in full_paths:
-            shutil.copy(full_path, "AllExcelFilesBackup")
+            shutil.copy(full_path, "Root\AllExcelFilesBackup")
             name =  os.path.basename(full_path)
             if re.search("IDEAL", name.upper()):
                 self.Widgets.ideal_path = full_path
@@ -315,8 +316,8 @@ class Widgets(QWidget):
         self.ax.set_xticks(xs)
         self.ax.set_xticklabels(Files.values(self.soil_path)[1])
 
-        if self.FuncAnimation != None:
-            # deletes old graph
+        # deletes old graph
+        if self.FuncAnimation != None:  
             self.FuncAnimation.event_source.stop()
         # blit avoids redrawing and helps performance
         self.FuncAnimation = animation.FuncAnimation(self.fig,self.update_graph,interval=0,blit=True)
@@ -405,7 +406,8 @@ class Widgets(QWidget):
         if len(self.slider_paths) == 1:
             # make sure its index isn't always 0
             index = self.all_slider_paths.index(self.slider_paths[0])
-
+        # add the value the slider is already on and set
+        setValue += self.sliders.itemAt(index).widget().value()
         self.sliders.itemAt(index).widget().setValue(setValue)
 
     def max_values(self):
@@ -419,6 +421,7 @@ class Widgets(QWidget):
                 setValue = temp  
                 index = i
 
+        # if there is a single path, update the index 
         if len(self.slider_paths) == 1:
             index = self.all_slider_paths.index(self.slider_paths[0])
 
