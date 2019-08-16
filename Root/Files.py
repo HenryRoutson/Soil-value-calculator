@@ -6,6 +6,7 @@ import os
 def values(path):
 
         if path == "":
+                print("no path")
                 return [] , []
 
         File = xlrd.open_workbook(path)
@@ -39,6 +40,3 @@ def values(path):
                         Results.append(0)
 
         return np.array(Results), np.array(Elements)
-
-def testValues(path):
-        pass

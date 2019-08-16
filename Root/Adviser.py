@@ -5,8 +5,10 @@ def run(ChangeVector,SubVectors):
     """Create functions to be used"""
 
     def unitVector(Vector):
-        # Vector / Vector Magnitude
-        return Vector/np.linalg.norm(Vector)
+        Vector_Magnitude = np.linalg.norm(Vector)
+        if Vector_Magnitude == 0:
+            return Vector
+        return Vector / Vector_Magnitude
 
     """Find best vector"""
 
@@ -15,8 +17,8 @@ def run(ChangeVector,SubVectors):
     UnitChangeVector = unitVector(ChangeVector)
 
     # Test direction similarity for each
-    for n in range(len(SubVectors)):
-        Similarity = np.dot(UnitChangeVector,unitVector(SubVectors[n]))
+    for n, SubVector in enumerate(SubVectors):
+        Similarity = np.dot(UnitChangeVector,unitVector(SubVector))
         if MaxSimilarity<Similarity:
             MaxSimilarity = Similarity
             MaxVectorPos = n

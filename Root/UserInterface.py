@@ -1,7 +1,9 @@
 """
 to do :
-fix max inf bug
-fix vibrating
+verify files
+create testing files
+save update
+fix vibrating and fix zoom glitch
 fix max and ideal
 pep8 http://pep8online.com/checkresult
 """
@@ -35,9 +37,9 @@ class MainWindow(QMainWindow):
         "MainWindow preferences"
 
         # look
-        self.text_size = 9
-        self.main_color = 0 # the next index color is used on start
-        self.main_colors = ["#9c9c9c", "#EBEBEB"]
+        self.text_size = 9.5
+        self.main_color = -1 # the next index color is used on start
+        self.main_colors = ["#EBEBEB","#9c9c9c","#363636"]
         self.setWindowTitle('GUI')
         self.setWindowIcon(QIcon('pythonlogo.png'))
         # size
@@ -92,15 +94,16 @@ class MainWindow(QMainWindow):
         HelpMenu.addAction(Documentation)
 
         # testing
-        self.Open(['C:/Users/henryro/OneDrive - Ballarat Grammar School/2019 Software/Sat/ExcelFiles/Compost 15mm 2018.xlsx', 'C:/Users/henryro/OneDrive - Ballarat Grammar School/2019 Software/Sat/ExcelFiles/Compost 15mmm 2018_Office.xlsx', 'C:/Users/henryro/OneDrive - Ballarat Grammar School/2019 Software/Sat/ExcelFiles/Compost 25mm 2018.xlsx', 'C:/Users/henryro/OneDrive - Ballarat Grammar School/2019 Software/Sat/ExcelFiles/Compost Geelong Sample.xlsx', 'C:/Users/henryro/OneDrive - Ballarat Grammar School/2019 Software/Sat/ExcelFiles/Ideal.xlsx', 'C:/Users/henryro/OneDrive - Ballarat Grammar School/2019 Software/Sat/ExcelFiles/Soil N.Cole Dam.xlsx', 'C:/Users/henryro/OneDrive - Ballarat Grammar School/2019 Software/Sat/ExcelFiles/Soil N.Cole Elephant Track.xlsx', 'C:/Users/henryro/OneDrive - Ballarat Grammar School/2019 Software/Sat/ExcelFiles/Soil N.Cole Little.xlsx', 'C:/Users/henryro/OneDrive - Ballarat Grammar School/2019 Software/Sat/ExcelFiles/Soil N.Cole Mail Box.xlsx', 'C:/Users/henryro/OneDrive - Ballarat Grammar School/2019 Software/Sat/ExcelFiles/Soil N.Cole School.xlsx'])
+        # self.Open(['C:/Users/henryro/OneDrive - Ballarat Grammar School/2019 Software/Sat/ExcelFiles/Compost 15mm 2018.xlsx', 'C:/Users/henryro/OneDrive - Ballarat Grammar School/2019 Software/Sat/ExcelFiles/Compost 15mmm 2018_Office.xlsx', 'C:/Users/henryro/OneDrive - Ballarat Grammar School/2019 Software/Sat/ExcelFiles/Compost 25mm 2018.xlsx', 'C:/Users/henryro/OneDrive - Ballarat Grammar School/2019 Software/Sat/ExcelFiles/Compost Geelong Sample.xlsx', 'C:/Users/henryro/OneDrive - Ballarat Grammar School/2019 Software/Sat/ExcelFiles/Ideal.xlsx', 'C:/Users/henryro/OneDrive - Ballarat Grammar School/2019 Software/Sat/ExcelFiles/Soil N.Cole Dam.xlsx', 'C:/Users/henryro/OneDrive - Ballarat Grammar School/2019 Software/Sat/ExcelFiles/Soil N.Cole Elephant Track.xlsx', 'C:/Users/henryro/OneDrive - Ballarat Grammar School/2019 Software/Sat/ExcelFiles/Soil N.Cole Little.xlsx', 'C:/Users/henryro/OneDrive - Ballarat Grammar School/2019 Software/Sat/ExcelFiles/Soil N.Cole Mail Box.xlsx', 'C:/Users/henryro/OneDrive - Ballarat Grammar School/2019 Software/Sat/ExcelFiles/Soil N.Cole School.xlsx'])
         # self.Open(['C:/Users/henryro/OneDrive - Ballarat Grammar School/2019 Software/Sat/ExcelFilesTesting/Compost.xlsx', 'C:/Users/henryro/OneDrive - Ballarat Grammar School/2019 Software/Sat/ExcelFilesTesting/Ideal.xlsx', 'C:/Users/henryro/OneDrive - Ballarat Grammar School/2019 Software/Sat/ExcelFilesTesting/Soil.xlsx'])
+        self.Open(['C:/Users/henryro/OneDrive - Ballarat Grammar School/2019 Software/Sat/ExcelFilesTesting/Compost_Testing_ContextMenu.xlsx', 'C:/Users/henryro/OneDrive - Ballarat Grammar School/2019 Software/Sat/ExcelFilesTesting/Ideal_Testing_ContextMenu.xlsx', 'C:/Users/henryro/OneDrive - Ballarat Grammar School/2019 Software/Sat/ExcelFilesTesting/Soil_Compost_ContextMenu.xlsx'])
 
     def Open(self, full_paths):
-
         # if there are no paths from drag drop
         if full_paths == False:
             # open the file menu
             full_paths = QFileDialog.getOpenFileNames(self,'Open File')[0]
+            print(full_paths)
 
         # delete non xlsx (excel) files
         for i, url in enumerate(full_paths):
@@ -110,7 +113,11 @@ class MainWindow(QMainWindow):
         # copy paths to AllExcelFilesBackup
         # update paths for graph and start
         for full_path in full_paths:
-            shutil.copy(full_path, "Root\AllExcelFilesBackup")
+            # try avoids already there type file errors
+            try:
+                shutil.copy(full_path, "Root\AllExcelFilesBackup")
+            except:
+                pass
             name =  os.path.basename(full_path)
             if re.search("IDEAL", name.upper()):
                 self.Widgets.ideal_path = full_path
@@ -124,7 +131,9 @@ class MainWindow(QMainWindow):
         self.DragDrop = DragDrop()
         self.Widgets.start_graph()
 
+    # called on mainwindow close
     def closeEvent(self, event):
+        # try avoids error if DragDrop is not open
         try:
             self.DragDrop.close()
         except:
@@ -132,7 +141,7 @@ class MainWindow(QMainWindow):
 
     def change_text_size(self):
 
-        change = 1
+        change = 0.5
         if self.sender().text() == "Text Size Up":
             self.text_size += change
         elif self.sender().text() == "Text Size Down":
@@ -140,7 +149,7 @@ class MainWindow(QMainWindow):
                 self.text_size += -change
 
         self.Widgets.setStyleSheet("font: "+str(self.text_size)+"pt")
-        matplotlib.rcParams.update({'font.size': self.text_size + 3 })
+        matplotlib.rcParams.update({'font.size': self.text_size + 2.5 })
         self.Widgets.start_graph()
 
     def light_dark(self):
@@ -226,7 +235,8 @@ class Widgets(QWidget):
         self.slider_color_pos = 0
     
         # viridis for color blind
-        cmap = cm.get_cmap('viridis', 10)
+        # number can be set higher for more colors that are closer together
+        cmap = cm.get_cmap('viridis', 10) 
         for i in range(cmap.N):
             rgb = cmap(i)[:3]
             self.all_slider_colors.append(matplotlib.colors.rgb2hex(rgb))
@@ -243,13 +253,14 @@ class Widgets(QWidget):
         # and is used to get ideal values for example, on a single slider
         self.slider_paths.append(path)
 
+        # create slider
         slider = QSlider(Qt.Vertical)
         custom_slider = QCustomSlider(slider)
 
+        # color
         # go to start if out of colors
         if self.slider_color_pos >= len(self.all_slider_colors)-1:
             self.slider_color_pos = 0
-
         hex_color = self.all_slider_colors[self.slider_color_pos]
         self.slider_color_pos += 1
         self.slider_colors.append(hex_color)
@@ -268,6 +279,7 @@ class Widgets(QWidget):
 
     def delete_slider(self, button):
         index = self.buttons.indexOf(button)
+        # GUI items are deleted first
         self.buttons.itemAt(index).widget().setParent(None)
         self.sliders.itemAt(index).widget().setParent(None)
         self.labels.itemAt(index).widget().setParent(None)
@@ -287,28 +299,32 @@ class Widgets(QWidget):
 
         toolbar = NavigationToolbar2QT(canvas, self)
         self.graph.addWidget(toolbar)
+
         self.ax = canvas.figure.subplots()
         self.soil_path = ""
         self.ideal_path = ""
         self.FuncAnimation = None
 
+        # testing
+        self.min_distance = 10**10
+
     def start_graph(self): 
         if self.soil_path == "" or self.ideal_path == "":
             return
 
-        # graph is cleared to update color, text size and so on
-        # updating these when they are changed helps performance
+        # graph is cleared to update things other than bar scale
+        # updating these only when they are changed helps performance
         self.ax.clear()
 
         self.bars = []
         length = len(Files.values(self.soil_path)[0])
-        # np.arrays help performance 
+        # numpy arrays help performance 
         xs = np.arange(length) # 1,2,3
         ys = np.zeros(length) # 0,0,0
 
-        for i, slider_path in enumerate(self.all_slider_paths):
-            self.bars.append(self.ax.bar(xs, ys, color=self.slider_colors[i], edgecolor='black'))
-            
+        # create bars
+        for color in self.slider_colors:
+            self.bars.append(self.ax.bar(xs, ys, color=color, edgecolor='black'))
         # using real values sets a propper frame
         self.bars.append(self.ax.bar(xs, Files.values(self.soil_path)[0], color = "grey"))
         self.bars.append(self.ax.bar(xs, Files.values(self.ideal_path)[0], facecolor="None", edgecolor='green'))
@@ -316,10 +332,11 @@ class Widgets(QWidget):
         self.ax.set_xticks(xs)
         self.ax.set_xticklabels(Files.values(self.soil_path)[1])
 
+        # Function animation is an optimized loop function that calls update_graph 
         # deletes old graph
         if self.FuncAnimation != None:  
             self.FuncAnimation.event_source.stop()
-        # blit avoids redrawing and helps performance
+        # blit avoids a complete re-render and helps performance
         self.FuncAnimation = animation.FuncAnimation(self.fig,self.update_graph,interval=0,blit=True)
 
     def update_values(self, bars, values, bottom = []):
@@ -331,13 +348,22 @@ class Widgets(QWidget):
                 bar.set_y(bottom[i])
 
     def update_graph(self, frames):
+
+        # testing
+        distance = np.linalg.norm(self.get_vectors(1)[0])
+        if distance < self.min_distance:
+            print(distance)
+            self.min_distance = distance
+
         bottom = Files.values(self.soil_path)[0]
         for i, slider_path in enumerate(self.all_slider_paths):
             slider_value = self.sliders.itemAt(i).widget().value()
             ys = Files.values(slider_path)[0] * slider_value
             self.update_values(self.bars[i], ys ,bottom)
             bottom += ys
-            setText = str(round(self.label_conversion*slider_value,1)) + self.label_unit
+            setText = ""
+            setText = "...\n\n" # comment out if not wanted
+            setText = setText + str(round(self.label_conversion*slider_value,1)) + self.label_unit
             self.labels.itemAt(i).widget().setText(setText)
 
         self.update_values(self.bars[-3], Files.values(self.soil_path)[0])
@@ -384,11 +410,15 @@ class Widgets(QWidget):
 
     def get_vectors(self, scalar):
         change_vector = Files.values(self.ideal_path)[0] * scalar - Files.values(self.soil_path)[0]
-        sub_vectors = np.zeros(len(change_vector)) 
+        # create an array to append to
+        sub_vectors = np.zeros(len(change_vector))
+        # and for each of the vectors 
         for i, slider_path in enumerate(self.slider_paths):
             values = Files.values(slider_path)[0]
             slider_value = self.sliders.itemAt(i).widget().value()
+            # update the change vector
             change_vector -= values * slider_value
+            # and append the slider vector
             sub_vectors = np.vstack((sub_vectors, values))
         return change_vector, sub_vectors[1:]
 
@@ -398,7 +428,7 @@ class Widgets(QWidget):
         index, setValue = Adviser.run(change_vector,sub_vectors)
         # if the advisor doesn't have a change to improve
         if setValue == None:
-            # exit
+            # exit function
             return None
 
         # if this is a contextMenuEvent path
@@ -406,7 +436,8 @@ class Widgets(QWidget):
         if len(self.slider_paths) == 1:
             # make sure its index isn't always 0
             index = self.all_slider_paths.index(self.slider_paths[0])
-        # add the value the slider is already on and set
+
+        # add the value the slider is already on and setValue
         setValue += self.sliders.itemAt(index).widget().value()
         self.sliders.itemAt(index).widget().setValue(setValue)
 
@@ -414,11 +445,18 @@ class Widgets(QWidget):
         change_vector, sub_vectors = self.get_vectors(self.max_div_ideal)
         setValue, index = 0, 0 
 
-        # find the which compost can be put on the most witout going over limits
+        # find the which compost can be put on the most witout going over limits:
+        # for each of the vectors
         for i, sub_vector in enumerate(sub_vectors):
-            temp = np.amin(change_vector/sub_vector)
-            if setValue < temp:
-                setValue = temp  
+            # find the value that first goes over the limit and when
+            if np.linalg.norm(sub_vector) == 0:
+                continue
+            limit = np.amin(change_vector/sub_vector)
+            # if limit takes longer to go over the limit than previous sliders
+            if setValue < limit:
+                # make it the new set value
+                setValue = limit  
+                # and slider
                 index = i
 
         # if there is a single path, update the index 
@@ -458,4 +496,3 @@ if __name__=='__main__':
     MainWindow = MainWindow()
     MainWindow.show()
     sys.exit(app.exec_())
-    
