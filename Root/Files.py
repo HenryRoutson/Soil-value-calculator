@@ -3,18 +3,7 @@ from xlutils.save import save
 import xlrd
 import os
 
-def values(path):
-
-        if path == "":
-                print("no path")
-                return [] , []
-
-        File = xlrd.open_workbook(path)
-        File = File.sheet_by_index(0)   
-
-        Elements,Results = [],[]
-
-        def TryFloat(In):
+def TryFloat(In):
                 try:
                         return abs(float(In))
                 except:
@@ -23,6 +12,14 @@ def values(path):
                                 return abs(float(In[1:]))
                         except:
                                 return 0
+
+def values(path):
+
+        if path == "":
+                return [] , []
+
+        File = xlrd.open_workbook(path).sheet_by_index(0)
+        Elements,Results = [],[]
 
         for x in range(6,19):
                 Elements.append(File.cell(x, 1).value)
