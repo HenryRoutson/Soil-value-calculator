@@ -4,19 +4,16 @@ import xlrd
 import os
 
 def TryFloat(In):
+        try:
+                return float(In)
+        except:
                 try:
-                        return abs(float(In))
+                        # >5
+                        return float(In[1:])
                 except:
-                        try:
-                                # >5
-                                return abs(float(In[1:]))
-                        except:
-                                return 0
+                        return 0
 
 def values(path):
-
-        if path == "":
-                return [] , []
 
         File = xlrd.open_workbook(path).sheet_by_index(0)
         Elements,Results = [],[]

@@ -1,6 +1,8 @@
 """
 to do :
-fix max and ideal
+fix graph not showing
+fix email dragdrop
+fix ideal
 fix vibrating and fix zoom glitch
 pep8 http://pep8online.com/checkresult
 """
@@ -86,21 +88,30 @@ class MainWindow(QMainWindow):
         # Help menu
         HelpMenu = MainMenu.addMenu('Help')
 
-        Documentation = QAction("Open documentation",self)
-        Documentation.triggered.connect(lambda: os.system('start Documentation'))
-        HelpMenu.addAction(Documentation)
+        Getting_started = QAction("Getting started",self)
+        Getting_started.triggered.connect(lambda: os.system('start Documentation\Getting_started.docx'))
+        HelpMenu.addAction(Getting_started)
 
-        # Open on launch
-        # self.Open(['C:/Users/henryro/OneDrive - Ballarat Grammar School/2019 Software/Sat/ExcelFiles/Compost 15mm 2018.xlsx', 'C:/Users/henryro/OneDrive - Ballarat Grammar School/2019 Software/Sat/ExcelFiles/Compost 15mmm 2018_Office.xlsx', 'C:/Users/henryro/OneDrive - Ballarat Grammar School/2019 Software/Sat/ExcelFiles/Compost 25mm 2018.xlsx', 'C:/Users/henryro/OneDrive - Ballarat Grammar School/2019 Software/Sat/ExcelFiles/Compost Geelong Sample.xlsx', 'C:/Users/henryro/OneDrive - Ballarat Grammar School/2019 Software/Sat/ExcelFiles/Ideal.xlsx', 'C:/Users/henryro/OneDrive - Ballarat Grammar School/2019 Software/Sat/ExcelFiles/Soil N.Cole Dam.xlsx', 'C:/Users/henryro/OneDrive - Ballarat Grammar School/2019 Software/Sat/ExcelFiles/Soil N.Cole Elephant Track.xlsx', 'C:/Users/henryro/OneDrive - Ballarat Grammar School/2019 Software/Sat/ExcelFiles/Soil N.Cole Little.xlsx', 'C:/Users/henryro/OneDrive - Ballarat Grammar School/2019 Software/Sat/ExcelFiles/Soil N.Cole Mail Box.xlsx', 'C:/Users/henryro/OneDrive - Ballarat Grammar School/2019 Software/Sat/ExcelFiles/Soil N.Cole School.xlsx'])
-        # self.Open(['C:/Users/henryro/OneDrive - Ballarat Grammar School/2019 Software/Sat/ExcelFilesTesting/Compost.xlsx', 'C:/Users/henryro/OneDrive - Ballarat Grammar School/2019 Software/Sat/ExcelFilesTesting/Ideal.xlsx', 'C:/Users/henryro/OneDrive - Ballarat Grammar School/2019 Software/Sat/ExcelFilesTesting/Soil.xlsx'])
-        self.Open(['C:/Users/henryro/OneDrive - Ballarat Grammar School/2019 Software/Sat/ExcelFilesTesting/Compost_Testing_ContextMenu.xlsx', 'C:/Users/henryro/OneDrive - Ballarat Grammar School/2019 Software/Sat/ExcelFilesTesting/Ideal_Testing_ContextMenu.xlsx', 'C:/Users/henryro/OneDrive - Ballarat Grammar School/2019 Software/Sat/ExcelFilesTesting/Soil_Compost_ContextMenu.xlsx'])
+        How_to_use_the_Program = QAction("How to use the Program",self)
+        How_to_use_the_Program.triggered.connect(lambda: os.system('start Documentation\How_to_use_the_Program.docx'))
+        HelpMenu.addAction(How_to_use_the_Program)
+
+        Right_click_functions = QAction("Right click functions",self)
+        Right_click_functions.triggered.connect(lambda: os.system('start Documentation\Right_click_functions.docx'))
+        HelpMenu.addAction(Right_click_functions)
+
+        "Open on launch"
+
+        # Normal files
+        # self.Open(['C:/Users/henryro/OneDrive - Ballarat Grammar School/2019 Software/Sat/ExcelFiles/Compost 15mm 2018.xlsx', 'C:/Users/henryro/OneDrive - Ballarat Grammar School/2019 Software/Sat/ExcelFiles/Compost 15mmm 2018 Office.xlsx', 'C:/Users/henryro/OneDrive - Ballarat Grammar School/2019 Software/Sat/ExcelFiles/Compost 25mm 2018.xlsx', 'C:/Users/henryro/OneDrive - Ballarat Grammar School/2019 Software/Sat/ExcelFiles/Compost Geelong Sample.xlsx', 'C:/Users/henryro/OneDrive - Ballarat Grammar School/2019 Software/Sat/ExcelFiles/Ideal.xlsx', 'C:/Users/henryro/OneDrive - Ballarat Grammar School/2019 Software/Sat/ExcelFiles/Soil N.Cole Dam.xlsx', 'C:/Users/henryro/OneDrive - Ballarat Grammar School/2019 Software/Sat/ExcelFiles/Soil N.Cole Elephant Track.xlsx', 'C:/Users/henryro/OneDrive - Ballarat Grammar School/2019 Software/Sat/ExcelFiles/Soil N.Cole Little.xlsx', 'C:/Users/henryro/OneDrive - Ballarat Grammar School/2019 Software/Sat/ExcelFiles/Soil N.Cole Mail Box.xlsx', 'C:/Users/henryro/OneDrive - Ballarat Grammar School/2019 Software/Sat/ExcelFiles/Soil N.Cole School.xlsx'])
+        # Testing files
+        # self.Open(['C:/Users/henryro/OneDrive - Ballarat Grammar School/2019 Software/Sat/ExcelFilesTesting/Compost_Testing_ContextMenu.xlsx', 'C:/Users/henryro/OneDrive - Ballarat Grammar School/2019 Software/Sat/ExcelFilesTesting/Ideal_Testing_ContextMenu.xlsx', 'C:/Users/henryro/OneDrive - Ballarat Grammar School/2019 Software/Sat/ExcelFilesTesting/Soil_Compost_ContextMenu.xlsx'])
 
     def Open(self, full_paths):
         # if there are no paths from drag drop
         if full_paths == False:
             # open the file menu
             full_paths = QFileDialog.getOpenFileNames(self,'Open File')[0]
-            print(full_paths)
 
         # delete non xlsx (excel) files
         for i, url in enumerate(full_paths):
@@ -203,8 +214,8 @@ class Widgets(QWidget):
 
         # functional
         self.max_div_ideal = 4
-        self.label_conversion = 1330 # 1330T T/Ha soil * percent compost added to soil
-        self.label_unit = " T/Ha"
+        self.label_conversion = 1330 # units per unit of soil
+        self.label_unit = " T/Ha" # 1330 Tonnes per Ha of soil
 
         self.Layout = QHBoxLayout()
         self.setLayout(self.Layout)
@@ -266,7 +277,7 @@ class Widgets(QWidget):
         button = QPushButton()
         button.setStyleSheet("QPushButton:hover:!pressed { border: 2px solid red; }")
         name = os.path.basename(path).replace(".xlsx","")
-        name = name.replace(" ","\n")
+        name = name.replace(" ","\n").replace("_","\n")
         button.setText(name)
         button.clicked.connect(lambda: self.delete_slider(button)) 
         
@@ -282,6 +293,7 @@ class Widgets(QWidget):
         self.labels.itemAt(index).widget().setParent(None)
         self.bars[index].remove() # on graph
         del self.bars[index] # in memory
+        del self.slider_paths[index]
         del self.all_slider_paths[index]
         del self.slider_colors[index]
 
@@ -305,13 +317,13 @@ class Widgets(QWidget):
         # testing
         self.min_distance = 10**10
 
+    # In the graph nutrients only account for percent of the mass
+    # rock, organic matter and water are the rest
+
     def start_graph(self): 
         if self.soil_path == "" or self.ideal_path == "":
             return
-
-        # graph is cleared to update things other than bar scale
-        # updating these only when they are changed helps performance
-        self.ax.clear()
+        # updating things other than bar scale only when they are changed helps performance
 
         self.bars = []
         length = len(Files.values(self.soil_path)[0])
@@ -326,41 +338,41 @@ class Widgets(QWidget):
         self.bars.append(self.ax.bar(xs, Files.values(self.soil_path)[0], color = "grey"))
         self.bars.append(self.ax.bar(xs, Files.values(self.ideal_path)[0], facecolor="None", edgecolor='green'))
         self.bars.append(self.ax.bar(xs, Files.values(self.ideal_path)[0]*self.max_div_ideal, facecolor="None", edgecolor='red'))
+
+        Labels = (os.path.basename(self.ideal_path)[:-5]+" X "+str(self.max_div_ideal),os.path.basename(self.ideal_path)[:-5], os.path.basename(self.soil_path)[:-5])
+        self.ax.legend((self.bars[-1], self.bars[-2], self.bars[-3]), Labels)
         self.ax.set_xticks(xs)
         self.ax.set_xticklabels(Files.values(self.soil_path)[1])
 
         # Function animation is an optimized loop function that calls update_graph 
-        # deletes old graph
         if self.FuncAnimation != None:  
             self.FuncAnimation.event_source.stop()
         # blit avoids a complete re-render and helps performance
         self.FuncAnimation = animation.FuncAnimation(self.fig,self.update_graph,interval=0,blit=True)
 
-    def update_values(self, bars, values, bottom = []):
-        for i, bar in enumerate(bars):
-            bar.set_height(values[i])
+    def update_values(self, bars, values, y_values = []):
+        for bar, value in zip(bars, values):
+            bar.set_height(value)
         # set y raises the bar on top of the last
-        if bottom != []:
-            for i, bar in enumerate(bars):
-                bar.set_y(bottom[i])
+        if y_values != []:
+            for bar, y_value in zip(bars, y_values):
+                bar.set_y(y_value)
 
     def update_graph(self, frames):
 
-        # testing
-        distance = np.linalg.norm(self.get_vectors(1)[0])
-        if distance < self.min_distance:
-            print(distance)
-            self.min_distance = distance
+        # # testing (slow)
+        # distance = np.linalg.norm(self.get_vectors(1)[0])
+        # if distance < self.min_distance:
+        #     print(distance)
+        #     self.min_distance = distance
 
-        bottom = Files.values(self.soil_path)[0]
+        y_values = Files.values(self.soil_path)[0]
         for i, slider_path in enumerate(self.all_slider_paths):
             slider_value = self.sliders.itemAt(i).widget().value()
             ys = Files.values(slider_path)[0] * slider_value
-            self.update_values(self.bars[i], ys ,bottom)
-            bottom += ys
-            setText = ""
-            setText = "...\n\n" # comment out if not wanted
-            setText = setText + str(round(self.label_conversion*slider_value,1)) + self.label_unit
+            self.update_values(self.bars[i], ys ,y_values)
+            y_values += ys
+            setText = str(round(self.label_conversion*slider_value,1)) + self.label_unit
             self.labels.itemAt(i).widget().setText(setText)
 
         self.update_values(self.bars[-3], Files.values(self.soil_path)[0])
@@ -420,9 +432,7 @@ class Widgets(QWidget):
         return change_vector, sub_vectors[1:]
 
     def ideal_values(self):
-        change_vector, sub_vectors = self.get_vectors(1)
-        
-        index, setValue = Adviser.run(change_vector,sub_vectors)
+        index, setValue = Adviser.run(self.get_vectors(1))
         # if the advisor doesn't have a change to improve
         if setValue == None:
             # exit function
@@ -469,19 +479,17 @@ class DragDrop(QLineEdit):
         super(DragDrop, self).__init__()
         # dark mode not included for simplicity
         self.setGeometry(200,200,200,200)
-        self.setText("Drag and drop here")
+        self.setText("Drag and drop here\nSave files first")
         self.setDragEnabled(True)
         self.show()
 
     def dragEnterEvent(self, event):
-        data = event.mimeData()
-        urls = data.urls()
-        if urls and urls[0].scheme() == 'file':
-            event.acceptProposedAction()
+        event.acceptProposedAction()
 
+    # doesn't support drops with no path
+    # files have to be saved first
     def dropEvent(self, event):
-        data = event.mimeData()
-        urls = data.urls()
+        urls = event.mimeData().urls()
         full_paths = []
         for x, url in enumerate(urls):
             full_paths.append(str(url.path())[1:])
