@@ -1,7 +1,5 @@
 """
 to do :
-fix graph not showing
-fix email dragdrop
 fix ideal
 fix vibrating and fix zoom glitch
 pep8 http://pep8online.com/checkresult
@@ -37,7 +35,7 @@ class MainWindow(QMainWindow):
 
         # look
         self.text_size = 9.5
-        self.main_color = -1 # the next index color is used on start
+        self.main_color = 1 # the next index color is used on start
         self.main_colors = ["#EBEBEB","#9c9c9c","#363636"]
         self.setWindowTitle('GUI')
         self.setWindowIcon(QIcon('pythonlogo.png'))
@@ -310,8 +308,8 @@ class Widgets(QWidget):
         self.graph.addWidget(toolbar)
 
         self.ax = canvas.figure.subplots()
-        self.soil_path = ""
-        self.ideal_path = ""
+        self.soil_path = "Root\DefaultFiles\Soil_Zeros.xlsx"
+        self.ideal_path = "Root\DefaultFiles\Ideal_Zeros.xlsx"
         self.FuncAnimation = None
 
         # testing
@@ -321,32 +319,43 @@ class Widgets(QWidget):
     # rock, organic matter and water are the rest
 
     def start_graph(self): 
-        if self.soil_path == "" or self.ideal_path == "":
-            return
         # updating things other than bar scale only when they are changed helps performance
 
         self.bars = []
-        length = len(Files.values(self.soil_path)[0])
-        # numpy arrays help performance 
-        xs = np.arange(length) # 1,2,3
-        ys = np.zeros(length) # 0,0,0
 
-        # create bars
-        for color in self.slider_colors:
-            self.bars.append(self.ax.bar(xs, ys, color=color, edgecolor='black'))
-        # using real values sets a propper frame
-        self.bars.append(self.ax.bar(xs, Files.values(self.soil_path)[0], color = "grey"))
-        self.bars.append(self.ax.bar(xs, Files.values(self.ideal_path)[0], facecolor="None", edgecolor='green'))
-        self.bars.append(self.ax.bar(xs, Files.values(self.ideal_path)[0]*self.max_div_ideal, facecolor="None", edgecolor='red'))
-
-        Labels = (os.path.basename(self.ideal_path)[:-5]+" X "+str(self.max_div_ideal),os.path.basename(self.ideal_path)[:-5], os.path.basename(self.soil_path)[:-5])
-        self.ax.legend((self.bars[-1], self.bars[-2], self.bars[-3]), Labels)
-        self.ax.set_xticks(xs)
-        self.ax.set_xticklabels(Files.values(self.soil_path)[1])
+        self.ax.clear()
 
         # Function animation is an optimized loop function that calls update_graph 
         if self.FuncAnimation != None:  
             self.FuncAnimation.event_source.stop()
+
+        self.length = len(Files.values(self.soil_path)[0])
+        # numpy arrays help performance 
+        xs = np.arange(self.length) # 1,2,3
+        ys = np.zeros(self.length) # 0,0,0
+
+        # create bars
+
+        for color in self.slider_colors:
+            self.bars.append(self.ax.bar(xs, ys, color=color, edgecolor='black'))
+
+        # using real values sets a propper frame
+
+        self.bars.append(self.ax.bar(xs, Files.values(self.soil_path)[0], color = "grey", edgecolor='black'))
+        self.bars[-1].set_label(os.path.basename(self.soil_path)[:-5])
+
+        self.bars.append(self.ax.bar(xs, Files.values(self.ideal_path)[0], facecolor="None", edgecolor='green'))
+        self.bars[-1].set_label(os.path.basename(self.ideal_path)[:-5])
+        self.bars.append(self.ax.bar(xs, Files.values(self.ideal_path)[0]*self.max_div_ideal, facecolor="None", edgecolor='red'))
+        self.bars[-1].set_label(os.path.basename(self.ideal_path)[:-5]+"X"+str(self.max_div_ideal))
+            
+        self.ax.set_ylabel("Percent by mass of soil")
+        self.ax.set_xlabel("Nutrients")
+
+        self.ax.set_xticklabels(Files.values(self.soil_path)[1])
+
+        self.ax.legend()
+
         # blit avoids a complete re-render and helps performance
         self.FuncAnimation = animation.FuncAnimation(self.fig,self.update_graph,interval=0,blit=True)
 
@@ -367,6 +376,7 @@ class Widgets(QWidget):
         #     self.min_distance = distance
 
         y_values = Files.values(self.soil_path)[0]
+            
         for i, slider_path in enumerate(self.all_slider_paths):
             slider_value = self.sliders.itemAt(i).widget().value()
             ys = Files.values(slider_path)[0] * slider_value
@@ -432,7 +442,8 @@ class Widgets(QWidget):
         return change_vector, sub_vectors[1:]
 
     def ideal_values(self):
-        index, setValue = Adviser.run(self.get_vectors(1))
+        ChangeVector,SubVectors = self.get_vectors(1)
+        index, setValue = Adviser.run(ChangeVector,SubVectors)
         # if the advisor doesn't have a change to improve
         if setValue == None:
             # exit function
@@ -478,8 +489,8 @@ class DragDrop(QLineEdit):
     def __init__(self):
         super(DragDrop, self).__init__()
         # dark mode not included for simplicity
-        self.setGeometry(200,200,200,200)
-        self.setText("Drag and drop here\nSave files first")
+        self.setGeometry(200,200,300,200)
+        self.setText("Drag and drop saved files here")
         self.setDragEnabled(True)
         self.show()
 

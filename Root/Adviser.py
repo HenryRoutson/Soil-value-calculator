@@ -22,7 +22,7 @@ def run(ChangeVector,SubVectors):
             MaxSimilarity = Similarity
             MaxVectorPos = n
 
-    # Break if no vector can get closer
+    # Break if there isn't a vector in changeVectors direction
     if MaxSimilarity == 0:
         return None , None
 
