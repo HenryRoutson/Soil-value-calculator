@@ -1,5 +1,6 @@
 """
 to do :
+fix labels bug
 fix ideal
 fix vibrating and fix zoom glitch
 pep8 http://pep8online.com/checkresult
@@ -35,7 +36,7 @@ class MainWindow(QMainWindow):
 
         # look
         self.text_size = 9.5
-        self.main_color = 1 # the next index color is used on start
+        self.main_color = -1 # the next index color is used on start
         self.main_colors = ["#EBEBEB","#9c9c9c","#363636"]
         self.setWindowTitle('GUI')
         self.setWindowIcon(QIcon('pythonlogo.png'))
@@ -352,7 +353,10 @@ class Widgets(QWidget):
         self.ax.set_ylabel("Percent by mass of soil")
         self.ax.set_xlabel("Nutrients")
 
-        self.ax.set_xticklabels(Files.values(self.soil_path)[1])
+        xticklabels = Files.values(self.soil_path)[1]
+
+        self.ax.set_xticks(xs)
+        self.ax.set_xticklabels(xticklabels)
 
         self.ax.legend()
 
