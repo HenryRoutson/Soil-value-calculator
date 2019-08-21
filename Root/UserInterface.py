@@ -1,8 +1,6 @@
 """
 to do :
-fix labels bug
 fix ideal
-fix vibrating and fix zoom glitch
 pep8 http://pep8online.com/checkresult
 """
 
@@ -300,8 +298,7 @@ class Widgets(QWidget):
         self.graph  = QVBoxLayout()
         self.Layout.addLayout(self.graph)
 
-        self.fig = Figure()
-        self.fig.set_tight_layout(True)
+        self.fig = Figure(tight_layout=True)
         canvas = FigureCanvas(self.fig)
         self.graph.addWidget(canvas)
 
@@ -311,7 +308,7 @@ class Widgets(QWidget):
         self.ax = canvas.figure.subplots()
         self.soil_path = "Root\DefaultFiles\Soil_Zeros.xlsx"
         self.ideal_path = "Root\DefaultFiles\Ideal_Zeros.xlsx"
-        self.FuncAnimation = None
+        self.FuncAnimation = False
 
         # testing
         self.min_distance = 10**10
@@ -323,12 +320,12 @@ class Widgets(QWidget):
         # updating things other than bar scale only when they are changed helps performance
 
         self.bars = []
-
         self.ax.clear()
 
         # Function animation is an optimized loop function that calls update_graph 
-        if self.FuncAnimation != None:  
+        if self.FuncAnimation:  
             self.FuncAnimation.event_source.stop()
+            del self.FuncAnimation # del from memory
 
         self.length = len(Files.values(self.soil_path)[0])
         # numpy arrays help performance 
