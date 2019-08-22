@@ -306,8 +306,8 @@ class Widgets(QWidget):
         self.graph.addWidget(toolbar)
 
         self.ax = canvas.figure.subplots()
-        self.soil_path = "Root\DefaultFiles\Soil_Zeros.xlsx"
-        self.ideal_path = "Root\DefaultFiles\Ideal_Zeros.xlsx"
+        self.soil_path = r"Root\DefaultFiles\Soil_Zeros.xlsx"
+        self.ideal_path = r"Root\DefaultFiles\Ideal_Zeros.xlsx"
         self.FuncAnimation = False
 
         # testing
@@ -327,7 +327,8 @@ class Widgets(QWidget):
         # Function animation is an optimized loop function that calls update_graph 
         self.bars = []
         if self.FuncAnimation: 
-            self.FuncAnimation.event_source.stop() 
+            # self.FuncAnimation.event_source.stop() 
+            self.FuncAnimation._stop()
             del self.FuncAnimation # del from memory
             self.ax.clear()
 
@@ -467,15 +468,16 @@ class Widgets(QWidget):
         # for each of the vectors
         for i, sub_vector in enumerate(sub_vectors):
             # find the value that first goes over the limit and when
-            if np.linalg.norm(sub_vector) == 0:
-                continue
-            limit = np.amin(change_vector/sub_vector)
-            # if limit takes longer to go over the limit than previous sliders
-            if setValue < limit:
-                # make it the new set value
+            if np.linalg.norm(sub_vector) != 0:
+                limit = np.amin(change_vector/sub_vector)
+                # if limit takes longer to go over the limit than previous sliders
+                if setValue < limit:
+                    # make it the new set value
+                    setValue = limit  
                 setValue = limit  
-                # and slider
-                index = i
+                    setValue = limit  
+                    # and slider
+                    index = i
 
         # if there is a single path, update the index 
         if len(self.slider_paths) == 1:
