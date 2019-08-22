@@ -1,5 +1,6 @@
 """
 to do :
+fix vibrating
 fix ideal
 pep8 http://pep8online.com/checkresult
 """
@@ -249,10 +250,9 @@ class Widgets(QWidget):
     def create_slider(self,path):
 
         # avoid duplicates
-        for x in self.all_slider_paths:
-            if path == x:
-                return None
-            
+        if path in self.all_slider_paths:
+            return None
+        
         self.all_slider_paths.append(path)
         # slider_paths is subset of all_slider_paths
         # and is used to get ideal values for example, on a single slider
@@ -319,18 +319,17 @@ class Widgets(QWidget):
     def start_graph(self): 
         # updating things other than bar scale only when they are changed helps performance
 
-        self.bars = []
-        self.ax.clear()
-
-        # Function animation is an optimized loop function that calls update_graph 
-        if self.FuncAnimation:  
-            self.FuncAnimation.event_source.stop()
-            del self.FuncAnimation # del from memory
-
         self.length = len(Files.values(self.soil_path)[0])
         # numpy arrays help performance 
         xs = np.arange(self.length) # 1,2,3
         ys = np.zeros(self.length) # 0,0,0
+
+        # Function animation is an optimized loop function that calls update_graph 
+        self.bars = []
+        if self.FuncAnimation: 
+            self.FuncAnimation.event_source.stop() 
+            del self.FuncAnimation # del from memory
+            self.ax.clear()
 
         # create bars
 
