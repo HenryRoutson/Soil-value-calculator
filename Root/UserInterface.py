@@ -251,7 +251,7 @@ class Widgets(QWidget):
 
         # avoid duplicates
         if path in self.all_slider_paths:
-            return None
+            return
         
         self.all_slider_paths.append(path)
         # slider_paths is subset of all_slider_paths
@@ -447,7 +447,7 @@ class Widgets(QWidget):
         # if the advisor doesn't have a change to improve
         if setValue == None:
             # exit function
-            return None
+            return
 
         # if this is a contextMenuEvent path
         # eg [[path]]
