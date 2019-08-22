@@ -474,8 +474,6 @@ class Widgets(QWidget):
                 if setValue < limit:
                     # make it the new set value
                     setValue = limit  
-                setValue = limit  
-                    setValue = limit  
                     # and slider
                     index = i
 
