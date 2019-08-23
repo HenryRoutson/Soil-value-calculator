@@ -293,14 +293,14 @@ class Widgets(QWidget):
     def delete_slider(self, button):
         index = self.buttons.indexOf(button)
 
-        # print()
-        # print(self.buttons.count())
-        # print(self.sliders.count())
-        # print(self.labels.count())
-        # print(len(self.bars)-3)
-        # print(len(self.slider_paths))
-        # print(len(self.all_slider_paths))
-        # print(len(self.slider_colors))
+        print()
+        print(self.buttons.count())
+        print(self.sliders.count())
+        print(self.labels.count())
+        print(len(self.bars)-3)
+        print(len(self.slider_paths))
+        print(len(self.all_slider_paths))
+        print(len(self.slider_colors))
 
         # GUI items are deleted first
         self.buttons.itemAt(index).widget().setParent(None)
@@ -425,18 +425,15 @@ class Widgets(QWidget):
         self.context_menu.addAction(max_values)
 
     def contextMenuEvent(self, event):
-        # if contextMenuEvent is above a slider button
-        # set slider_paths to that slider_path
-        # so ideal_values for example, will only run over that path
-        # without needing a separate single path function
-        
+        # reset slider_paths, which the context menu functions work over
         self.slider_paths = self.all_slider_paths
+        # check if right click is above button
         for index in range(self.buttons.count()):
             widget = self.buttons.itemAt(index).widget().geometry()
             if event.globalX() < widget.x() + widget.width():
-                if index < len(self.all_slider_paths):
-                    self.slider_paths = [self.all_slider_paths[index]]
-                break
+                # if so, set slider_paths to path
+                # this avoids duplicate single path functions
+                self.slider_paths = [self.all_slider_paths[index]]
         self.context_menu.exec_(self.mapToGlobal(event.pos()))
 
     def reset_values(self):
@@ -456,11 +453,11 @@ class Widgets(QWidget):
             change_vector -= values * slider_value
             # and append the slider vector
             sub_vectors = np.vstack((sub_vectors, values))
-        return change_vector, sub_vectors[1:]
+        return change_vector, sub_vectors
 
     def ideal_values(self):
-        ChangeVector,SubVectors = self.get_vectors(1)
-        index, setValue = Adviser.run(ChangeVector,SubVectors)
+        change_vector,sub_vectors = self.get_vectors(1)
+        index, setValue = Adviser.run(change_vector,sub_vectors)
         # if the advisor doesn't have a change to improve
         if setValue == None:
             # exit function
