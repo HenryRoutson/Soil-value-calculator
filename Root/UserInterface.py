@@ -1,6 +1,5 @@
 """
 to do :
-fix vibrating
 fix ideal
 pep8 http://pep8online.com/checkresult
 """
@@ -10,12 +9,13 @@ import sys
 import re
 import shutil
 import numpy as np
-from pylab import *
 
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
 
+import matplotlib
+from matplotlib import cm
 from matplotlib.backends.qt_compat import QtCore, QtWidgets, is_pyqt5
 from matplotlib.backends.backend_qt5agg import *
 from matplotlib.figure import Figure
@@ -284,6 +284,16 @@ class Widgets(QWidget):
 
     def delete_slider(self, button):
         index = self.buttons.indexOf(button)
+
+        print()
+        print(self.buttons.count())
+        print(self.sliders.count())
+        print(self.labels.count())
+        print(len(self.bars)-3)
+        print(len(self.slider_paths))
+        print(len(self.all_slider_paths))
+        print(len(self.slider_colors))
+
         # GUI items are deleted first
         self.buttons.itemAt(index).widget().setParent(None)
         self.sliders.itemAt(index).widget().setParent(None)
@@ -327,9 +337,7 @@ class Widgets(QWidget):
         # Function animation is an optimized loop function that calls update_graph 
         self.bars = []
         if self.FuncAnimation: 
-            # self.FuncAnimation.event_source.stop() 
             self.FuncAnimation._stop()
-            del self.FuncAnimation # del from memory
             self.ax.clear()
 
         # create bars
