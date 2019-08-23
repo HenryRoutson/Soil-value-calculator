@@ -1,5 +1,6 @@
 """
 to do :
+fix sliders bug
 fix ideal
 pep8 http://pep8online.com/checkresult
 """
@@ -44,6 +45,7 @@ class MainWindow(QMainWindow):
         self.setMinimumSize(size.width(), size.height()/2)
         self.showMaximized()
         # functional
+        self.open_all = True # open error files with zeros in gaps
         self.Widgets = Widgets(self)
         self.setCentralWidget(self.Widgets)
 
@@ -100,21 +102,27 @@ class MainWindow(QMainWindow):
 
         "Open on launch"
 
-        # Normal files
-        # self.Open(['C:/Users/henryro/OneDrive - Ballarat Grammar School/2019 Software/Sat/ExcelFiles/Compost 15mm 2018.xlsx', 'C:/Users/henryro/OneDrive - Ballarat Grammar School/2019 Software/Sat/ExcelFiles/Compost 15mmm 2018 Office.xlsx', 'C:/Users/henryro/OneDrive - Ballarat Grammar School/2019 Software/Sat/ExcelFiles/Compost 25mm 2018.xlsx', 'C:/Users/henryro/OneDrive - Ballarat Grammar School/2019 Software/Sat/ExcelFiles/Compost Geelong Sample.xlsx', 'C:/Users/henryro/OneDrive - Ballarat Grammar School/2019 Software/Sat/ExcelFiles/Ideal.xlsx', 'C:/Users/henryro/OneDrive - Ballarat Grammar School/2019 Software/Sat/ExcelFiles/Soil N.Cole Dam.xlsx', 'C:/Users/henryro/OneDrive - Ballarat Grammar School/2019 Software/Sat/ExcelFiles/Soil N.Cole Elephant Track.xlsx', 'C:/Users/henryro/OneDrive - Ballarat Grammar School/2019 Software/Sat/ExcelFiles/Soil N.Cole Little.xlsx', 'C:/Users/henryro/OneDrive - Ballarat Grammar School/2019 Software/Sat/ExcelFiles/Soil N.Cole Mail Box.xlsx', 'C:/Users/henryro/OneDrive - Ballarat Grammar School/2019 Software/Sat/ExcelFiles/Soil N.Cole School.xlsx'])
-        # Testing files
-        # self.Open(['C:/Users/henryro/OneDrive - Ballarat Grammar School/2019 Software/Sat/ExcelFilesTesting/Compost_Testing_ContextMenu.xlsx', 'C:/Users/henryro/OneDrive - Ballarat Grammar School/2019 Software/Sat/ExcelFilesTesting/Ideal_Testing_ContextMenu.xlsx', 'C:/Users/henryro/OneDrive - Ballarat Grammar School/2019 Software/Sat/ExcelFilesTesting/Soil_Compost_ContextMenu.xlsx'])
-
     def Open(self, full_paths):
         # if there are no paths from drag drop
         if full_paths == False:
             # open the file menu
             full_paths = QFileDialog.getOpenFileNames(self,'Open File')[0]
 
-        # delete non xlsx (excel) files
-        for i, url in enumerate(full_paths):
-            if url[-5:].upper() != ".XLSX":
+        for i, path in enumerate(full_paths):
+            # delete non xlsx (excel) files
+            if path[-5:].upper() != ".XLSX":
                 del full_paths[i]
+            
+            if Files.values(path)[2] == True: # True if errors present
+                # delete non valid files
+                if not self.open_all:
+                    del full_paths[i]
+                else:
+                    # or rename to indicate error
+                    message = "_ContainsErrors.xlsx"
+                    if path[-len(message):] != message:
+                        os.rename(path, path[:-5] + message)
+                        full_paths[i] = path[:-5] + message
 
         # copy paths to AllExcelFilesBackup
         # update paths for graph and start
@@ -285,14 +293,14 @@ class Widgets(QWidget):
     def delete_slider(self, button):
         index = self.buttons.indexOf(button)
 
-        print()
-        print(self.buttons.count())
-        print(self.sliders.count())
-        print(self.labels.count())
-        print(len(self.bars)-3)
-        print(len(self.slider_paths))
-        print(len(self.all_slider_paths))
-        print(len(self.slider_colors))
+        # print()
+        # print(self.buttons.count())
+        # print(self.sliders.count())
+        # print(self.labels.count())
+        # print(len(self.bars)-3)
+        # print(len(self.slider_paths))
+        # print(len(self.all_slider_paths))
+        # print(len(self.slider_colors))
 
         # GUI items are deleted first
         self.buttons.itemAt(index).widget().setParent(None)
