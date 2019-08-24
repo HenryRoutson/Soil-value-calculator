@@ -1,6 +1,5 @@
 """
 to do :
-fix sliders bug
 fix ideal
 pep8 http://pep8online.com/checkresult
 """
@@ -121,8 +120,11 @@ class MainWindow(QMainWindow):
                     # or rename to indicate error
                     message = "_ContainsErrors.xlsx"
                     if path[-len(message):] != message:
-                        os.rename(path, path[:-5] + message)
-                        full_paths[i] = path[:-5] + message
+                        try:
+                            os.rename(path, path[:-5] + message)
+                            full_paths[i] = path[:-5] + message
+                        except:
+                            pass
 
         # copy paths to AllExcelFilesBackup
         # update paths for graph and start
@@ -262,9 +264,9 @@ class Widgets(QWidget):
             return
         
         self.all_slider_paths.append(path)
+        self.slider_paths = self.all_slider_paths
         # slider_paths is subset of all_slider_paths
         # and is used to get ideal values for example, on a single slider
-        self.slider_paths.append(path)
 
         # create slider
         slider = QSlider(Qt.Vertical)
@@ -292,25 +294,14 @@ class Widgets(QWidget):
 
     def delete_slider(self, button):
         index = self.buttons.indexOf(button)
-
-        print()
-        print(self.buttons.count())
-        print(self.sliders.count())
-        print(self.labels.count())
-        print(len(self.bars)-3)
-        print(len(self.slider_paths))
-        print(len(self.all_slider_paths))
-        print(len(self.slider_colors))
-
         # GUI items are deleted first
         self.buttons.itemAt(index).widget().setParent(None)
         self.sliders.itemAt(index).widget().setParent(None)
         self.labels.itemAt(index).widget().setParent(None)
         self.bars[index].remove() # on graph
         del self.bars[index] # in memory
-        del self.slider_paths[index]
-        del self.all_slider_paths[index]
         del self.slider_colors[index]
+        del self.all_slider_paths[index]
 
     def graph_init(self):
         self.graph  = QVBoxLayout()
@@ -386,11 +377,12 @@ class Widgets(QWidget):
 
     def update_graph(self, frames):
 
-        # # testing (slow)
-        # distance = np.linalg.norm(self.get_vectors(1)[0])
-        # if distance < self.min_distance:
-        #     print(distance)
-        #     self.min_distance = distance
+        # testing (slow)
+        dist = np.linalg.norm(self.get_vectors(1)[0])
+        if dist < self.min_distance:
+            print(dist)
+            if dist != 0.0:
+                self.min_distance = dist
 
         y_values = Files.values(self.soil_path)[0]
             
@@ -453,9 +445,12 @@ class Widgets(QWidget):
             change_vector -= values * slider_value
             # and append the slider vector
             sub_vectors = np.vstack((sub_vectors, values))
-        return change_vector, sub_vectors
+        return change_vector, sub_vectors[1:]
 
     def ideal_values(self):
+        if self.sliders.count() == 0:
+            return
+
         change_vector,sub_vectors = self.get_vectors(1)
         index, setValue = Adviser.run(change_vector,sub_vectors)
         # if the advisor doesn't have a change to improve
@@ -474,14 +469,17 @@ class Widgets(QWidget):
         self.sliders.itemAt(index).widget().setValue(setValue)
 
     def max_values(self):
+        if self.sliders.count() == 0:
+            return
+
         change_vector, sub_vectors = self.get_vectors(self.max_div_ideal)
-        setValue, index = 0, 0 
+        index, setValue = 0, 0.0
 
         # find the which compost can be put on the most witout going over limits:
         # for each of the vectors
         for i, sub_vector in enumerate(sub_vectors):
             # find the value that first goes over the limit and when
-            if np.linalg.norm(sub_vector) != 0:
+            if np.linalg.norm(sub_vector) != 0.0:
                 limit = np.amin(change_vector/sub_vector)
                 # if limit takes longer to go over the limit than previous sliders
                 if setValue < limit:
