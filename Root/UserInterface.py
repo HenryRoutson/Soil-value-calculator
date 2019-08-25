@@ -320,7 +320,7 @@ class Widgets(QWidget):
         self.FuncAnimation = False
 
         # testing
-        self.min_distance = 10**10
+        self.min_distance = 1
 
     # In the graph nutrients only account for percent of the mass
     # rock, organic matter and water are the rest
@@ -380,7 +380,7 @@ class Widgets(QWidget):
         # testing (slow)
         dist = np.linalg.norm(self.get_vectors(1)[0])
         if dist < self.min_distance:
-            print(dist)
+            #print(dist)
             if dist != 0.0:
                 self.min_distance = dist
 
@@ -426,6 +426,7 @@ class Widgets(QWidget):
                 # if so, set slider_paths to path
                 # this avoids duplicate single path functions
                 self.slider_paths = [self.all_slider_paths[index]]
+                break
         self.context_menu.exec_(self.mapToGlobal(event.pos()))
 
     def reset_values(self):
@@ -480,7 +481,8 @@ class Widgets(QWidget):
         for i, sub_vector in enumerate(sub_vectors):
             # find the value that first goes over the limit and when
             if np.linalg.norm(sub_vector) != 0.0:
-                limit = np.amin(change_vector/sub_vector)
+                # divide by zero errors are ignored as min value is taken
+                limit = np.amin(change_vector/sub_vector) 
                 # if limit takes longer to go over the limit than previous sliders
                 if setValue < limit:
                     # make it the new set value
