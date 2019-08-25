@@ -360,7 +360,7 @@ class Widgets(QWidget):
         xticklabels = Files.values(self.soil_path)[1]
 
         self.ax.set_xticks(xs)
-        self.ax.set_xticklabels(xticklabels)
+        self.ax.set_xticklabels(xticklabels, rotation=30, )
 
         self.ax.legend()
 
