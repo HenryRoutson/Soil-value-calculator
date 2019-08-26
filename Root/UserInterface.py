@@ -109,7 +109,7 @@ class MainWindow(QMainWindow):
 
         for i, path in enumerate(full_paths):
             # delete non xlsx (excel) files
-            if path[-5:].upper() != ".XLSX":
+            if path[-5:].lower() != ".xlsx":
                 del full_paths[i]
                 continue
             
@@ -361,7 +361,7 @@ class Widgets(QWidget):
         xticklabels = Files.values(self.soil_path)[1]
 
         self.ax.set_xticks(xs)
-        self.ax.set_xticklabels(xticklabels, rotation=30)
+        self.ax.set_xticklabels(xticklabels, rotation=30, horizontalalignment="right")
 
         self.ax.legend()
 
@@ -378,12 +378,12 @@ class Widgets(QWidget):
 
     def update_graph(self, frames):
 
-        # testing (slow)
-        dist = np.linalg.norm(self.get_vectors(1)[0])
-        if dist < self.min_distance:
-            #print(dist)
-            if dist != 0.0:
-                self.min_distance = dist
+        # # testing (slow)
+        # dist = np.linalg.norm(self.get_vectors(1)[0])
+        # if dist < self.min_distance:
+        #     print(dist)
+        #     if dist != 0.0:
+        #         self.min_distance = dist
 
         y_values = Files.values(self.soil_path)[0]
             
