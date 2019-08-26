@@ -111,6 +111,7 @@ class MainWindow(QMainWindow):
             # delete non xlsx (excel) files
             if path[-5:].upper() != ".XLSX":
                 del full_paths[i]
+                continue
             
             if Files.values(path)[2] == True: # True if errors present
                 # delete non valid files
@@ -360,7 +361,7 @@ class Widgets(QWidget):
         xticklabels = Files.values(self.soil_path)[1]
 
         self.ax.set_xticks(xs)
-        self.ax.set_xticklabels(xticklabels, rotation=30, )
+        self.ax.set_xticklabels(xticklabels, rotation=30)
 
         self.ax.legend()
 
