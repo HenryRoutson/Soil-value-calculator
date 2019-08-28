@@ -1,9 +1,3 @@
-"""
-to do :
-fix ideal
-pep8 http://pep8online.com/checkresult
-"""
-
 import os
 import sys
 import re
@@ -174,10 +168,11 @@ class MainWindow(QMainWindow):
             self.main_color = 0
         else:
             self.main_color += 1
-
-        self.setStyleSheet("QWidget { background-color: "+self.main_colors[self.main_color]+" }")
-        self.Widgets.ax.set_facecolor(self.main_colors[self.main_color])
-        self.Widgets.fig.set_facecolor(self.main_colors[self.main_color])
+        
+        color = self.main_colors[self.main_color]
+        self.setStyleSheet("QWidget { background-color: "+color+" }")
+        self.Widgets.ax.set_facecolor(color)
+        self.Widgets.fig.set_facecolor(color)
         self.Widgets.start_graph()
        
 class QCustomSlider(QSlider):
@@ -195,7 +190,7 @@ class QCustomSlider(QSlider):
         return super().value() / super().maximum() * self.max_float
 
     def setValue(self, value):
-        super().setValue( int( value / self.max_float * super().maximum() ) )
+        super().setValue(int( value / self.max_float * super().maximum()))
 
     # allows click to position 
     # mousePressEvent code is from:
@@ -312,6 +307,7 @@ class Widgets(QWidget):
         canvas = FigureCanvas(self.fig)
         self.graph.addWidget(canvas)
 
+        # zoom in toolbar is buggy
         toolbar = NavigationToolbar2QT(canvas, self)
         self.graph.addWidget(toolbar)
 
