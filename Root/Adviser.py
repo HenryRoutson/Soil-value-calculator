@@ -6,6 +6,7 @@ import numpy as np
 """Create functions to be used"""
 
 def unitvector(vector):
+    # np.linalg.norm is vector scale
     vector_magnitude = np.linalg.norm(vector)
     if vector_magnitude == 0.0:
         return vector
@@ -21,6 +22,7 @@ def run(change_vector,subvectors):
     # Test direction similarity for each
     for n, subvector in enumerate(subvectors):
         similarity = np.dot(unitvector(change_vector),unitvector(subvector))
+        # and find the most similar
         if max_similarity < similarity:
             max_similarity = similarity
             max_vector_pos = n
@@ -29,7 +31,7 @@ def run(change_vector,subvectors):
     if max_similarity == 0.0:
         return False , False
 
-    # return values of best vector to GUI
-    # vector, vector scale
+    # returns the best vector to GUI, (index, scale)
+    # the scale makes the subvector scale equal the change_vector scale, which makes them as close as they can be
     return max_vector_pos, np.linalg.norm(change_vector) / np.linalg.norm(subvectors[max_vector_pos])
     
