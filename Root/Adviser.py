@@ -1,3 +1,6 @@
+__author__  = "Henry Routson"
+__date__ = "2019-08-30"
+
 import numpy as np
 
 """Create functions to be used"""

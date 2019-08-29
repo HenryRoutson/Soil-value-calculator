@@ -1,5 +1,5 @@
-
-# fix contains errors
+__author__  = "Henry Routson"
+__date__ = "2019-08-30"
 
 # modules
 import Adviser
