@@ -24,7 +24,7 @@ def run(change_vector,subvectors):
 
     # Break if there isn't a vector in change_vectors direction
     if max_similarity == 0.0:
-        return None , None
+        return False , False
 
     # return values of best vector to GUI
     # vector, vector scale

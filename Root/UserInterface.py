@@ -1,3 +1,6 @@
+
+# fix contains errors
+
 # modules
 import Adviser
 import Files
@@ -108,7 +111,7 @@ class MainWindow(QMainWindow):
                 del full_paths[i]
                 continue
 
-            if not Files.values(path)[2]:  # True if errors present
+            if Files.values(path)[2]:  # True if errors present
                 # delete non valid files
                 if not self.open_all:
                     del full_paths[i]
@@ -185,7 +188,7 @@ class QCustomSlider(QSlider):
         # super is used to refer to the QSlider parent
         self.max_float = 0.05
         super().setMinimum(0)
-        super().setMaximum(1000)
+        super().setMaximum(665)
 
     # used for directly setting float values
     def value(self):
@@ -319,9 +322,6 @@ class Widgets(QWidget):
         self.ideal_path = r"Root\DefaultFiles\Ideal_Zeros.xlsx"
         self.FuncAnimation = False
 
-        # testing
-        self.min_distance = 1
-
     # In the graph nutrients only account for percent of the mass
     # rock, organic matter and water are the rest
 
@@ -376,14 +376,6 @@ class Widgets(QWidget):
                 bar.set_y(y_value)
 
     def update_graph(self, frames):
-
-        # # testing (slow)
-        # dist = np.linalg.norm(self.get_vectors(1)[0])
-        # if dist < self.min_distance:
-        #     print(dist)
-        #     if dist != 0.0:
-        #         self.min_distance = dist
-
         y_values = Files.values(self.soil_path)[0]
 
         for i, slider_path in enumerate(self.all_slider_paths):
