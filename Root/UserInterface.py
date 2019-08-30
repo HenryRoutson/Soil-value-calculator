@@ -313,7 +313,6 @@ class Widgets(QWidget):
         canvas = FigureCanvas(self.fig)
         self.graph.addWidget(canvas)
 
-        # zoom in toolbar is buggy
         toolbar = NavigationToolbar2QT(canvas, self)
         self.graph.addWidget(toolbar)
 
