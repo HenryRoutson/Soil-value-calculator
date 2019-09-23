@@ -40,7 +40,7 @@ class MainWindow(QMainWindow):
         # size
         size = app.primaryScreen().size()
         self.setMinimumSize(size.width(), size.height()/2)
-        # self.showMaximized()
+        self.showMaximized()
         # functional
         self.open_all = True  # open error files with zeros in gaps
         self.Widgets = Widgets(self)
@@ -129,7 +129,7 @@ class MainWindow(QMainWindow):
         for full_path in full_paths:
             # try avoids already there type file errors
             try:
-                shutil.copy(full_path, "Root\AllExcelFilesBackup")
+                shutil.copy(full_path, r"Root\AllExcelFilesBackup")
             except:
                 pass
             name = os.path.basename(full_path)
@@ -316,8 +316,8 @@ class Widgets(QWidget):
         self.graph.addWidget(toolbar)
 
         self.ax = canvas.figure.subplots()
-        self.soil_path = r"Root\DefaultFiles\Soil_Zeros.xlsx"
-        self.ideal_path = r"Root\DefaultFiles\Ideal_Zeros.xlsx"
+        self.soil_path = r"C:\Users\henryro\OneDrive - Ballarat Grammar School\2019 Software\Sat\Root\DefaultFiles\Soil_Zeros.xlsx"
+        self.ideal_path = r"C:\Users\henryro\OneDrive - Ballarat Grammar School\2019 Software\Sat\Root\DefaultFiles\Ideal_Zeros.xlsx"
         self.FuncAnimation = False
 
     # In the graph nutrients only account for percent of the mass
