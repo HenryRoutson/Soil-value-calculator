@@ -40,7 +40,7 @@ class MainWindow(QMainWindow):
         # size
         size = app.primaryScreen().size()
         self.setMinimumSize(size.width(), size.height()/2)
-        self.showMaximized()
+        # self.showMaximized()
         # functional
         self.open_all = True  # open error files with zeros in gaps
         self.Widgets = Widgets(self)
@@ -97,7 +97,6 @@ class MainWindow(QMainWindow):
         Right_click_functions.triggered.connect(lambda: os.system('start Documentation\Right_click_functions.docx'))
         HelpMenu.addAction(Right_click_functions)
 
-        "Open on launch"
 
     def Open(self, full_paths):
         # if there are no paths from drag drop
