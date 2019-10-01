@@ -26,78 +26,6 @@ matplotlib.use('TkAgg')  # fastest backend
 
 
 class MainWindow(QMainWindow):
-    def __init__(self):
-        super(MainWindow, self).__init__()
-
-        "MainWindow preferences"
-
-        # look
-        self.text_size = 9.5
-        self.main_color = -1  # the next index color is used on start
-        self.main_colors = ["#EBEBEB", "#9c9c9c", "#363636"]
-        self.setWindowTitle('GUI')
-        self.setWindowIcon(QIcon('pythonlogo.png'))
-        # size
-        size = app.primaryScreen().size()
-        self.setMinimumSize(size.width(), size.height()/2)
-        self.showMaximized()
-        # functional
-        self.open_all = True  # open error files with zeros in gaps
-        self.Widgets = Widgets(self)
-        self.setCentralWidget(self.Widgets)
-
-        'Menubar'
-
-        MainMenu = self.menuBar()
-
-        # File Menu
-        FileMenu = MainMenu.addMenu('File')
-
-        Open = QAction("Open", self)
-        Open.triggered.connect(self.Open)
-        FileMenu.addAction(Open)
-
-        DragAndDrop = QAction("Drag&Drop Open", self)
-        DragAndDrop.triggered.connect(self.DragAndDrop)
-        FileMenu.addAction(DragAndDrop)
-
-        Quit = QAction("Quit", self)
-        Quit.triggered.connect(lambda: exit())
-        FileMenu.addAction(Quit)
-
-        # Settings menu
-        SettingsMenu = MainMenu.addMenu('Settings')
-
-        text_size_Up = QAction("Text Size Up", self)
-        text_size_Up.triggered.connect(self.change_text_size)
-        SettingsMenu.addAction(text_size_Up)
-
-        self.font = QFont()
-        text_size_Down = QAction("Text Size Down", self)
-        text_size_Down.triggered.connect(self.change_text_size)
-        SettingsMenu.addAction(text_size_Down)
-
-        self.light_dark()
-        light_dark = QAction("Light/Dark", self)
-        light_dark.triggered.connect(self.light_dark)
-        SettingsMenu.addAction(light_dark)
-
-        # Help menu
-        HelpMenu = MainMenu.addMenu('Help')
-
-        Getting_started = QAction("Getting started", self)
-        Getting_started.triggered.connect(lambda: os.system('start Documentation\Getting_started.docx'))
-        HelpMenu.addAction(Getting_started)
-
-        How_to_use_the_Program = QAction("How to use the Program", self)
-        How_to_use_the_Program.triggered.connect(lambda: os.system('start Documentation\How_to_use_the_Program.docx'))
-        HelpMenu.addAction(How_to_use_the_Program)
-
-        Right_click_functions = QAction("Right click functions", self)
-        Right_click_functions.triggered.connect(lambda: os.system('start Documentation\Right_click_functions.docx'))
-        HelpMenu.addAction(Right_click_functions)
-
-
     def Open(self, full_paths):
         # if there are no paths from drag drop
         if not full_paths:
@@ -177,6 +105,77 @@ class MainWindow(QMainWindow):
         self.Widgets.ax.set_facecolor(color)
         self.Widgets.fig.set_facecolor(color)
         self.Widgets.start_graph()
+
+    def __init__(self):
+        super(MainWindow, self).__init__()
+
+        "MainWindow preferences"
+
+        # look
+        self.text_size = 9.5
+        self.main_color = -1  # the next index color is used on start
+        self.main_colors = ["#EBEBEB", "#9c9c9c", "#363636"]
+        self.setWindowTitle('GUI')
+        self.setWindowIcon(QIcon('pythonlogo.png'))
+        # size
+        size = app.primaryScreen().size()
+        self.setMinimumSize(size.width(), size.height()/2)
+        self.showMaximized()
+        # functional
+        self.open_all = True  # open error files with zeros in gaps
+        self.Widgets = Widgets(self)
+        self.setCentralWidget(self.Widgets)
+
+        'Menubar'
+
+        MainMenu = self.menuBar()
+
+        # File Menu
+        FileMenu = MainMenu.addMenu('File')
+
+        Open = QAction("Open", self)
+        Open.triggered.connect(self.Open)
+        FileMenu.addAction(Open)
+
+        DragAndDrop = QAction("Drag&Drop Open", self)
+        DragAndDrop.triggered.connect(self.DragAndDrop)
+        FileMenu.addAction(DragAndDrop)
+
+        Quit = QAction("Quit", self)
+        Quit.triggered.connect(lambda: exit())
+        FileMenu.addAction(Quit)
+
+        # Settings menu
+        SettingsMenu = MainMenu.addMenu('Settings')
+
+        text_size_Up = QAction("Text Size Up", self)
+        text_size_Up.triggered.connect(self.change_text_size)
+        SettingsMenu.addAction(text_size_Up)
+
+        self.font = QFont()
+        text_size_Down = QAction("Text Size Down", self)
+        text_size_Down.triggered.connect(self.change_text_size)
+        SettingsMenu.addAction(text_size_Down)
+
+        self.light_dark()
+        light_dark = QAction("Light/Dark", self)
+        light_dark.triggered.connect(self.light_dark)
+        SettingsMenu.addAction(light_dark)
+
+        # Help menu
+        HelpMenu = MainMenu.addMenu('Help')
+
+        Getting_started = QAction("Getting started", self)
+        Getting_started.triggered.connect(lambda: os.system('start Documentation\Getting_started.docx'))
+        HelpMenu.addAction(Getting_started)
+
+        How_to_use_the_Program = QAction("How to use the Program", self)
+        How_to_use_the_Program.triggered.connect(lambda: os.system('start Documentation\How_to_use_the_Program.docx'))
+        HelpMenu.addAction(How_to_use_the_Program)
+
+        Right_click_functions = QAction("Right click functions", self)
+        Right_click_functions.triggered.connect(lambda: os.system('start Documentation\Right_click_functions.docx'))
+        HelpMenu.addAction(Right_click_functions)
 
 
 class QCustomSlider(QSlider):
