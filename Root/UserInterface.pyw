@@ -57,7 +57,7 @@ class MainWindow(QMainWindow):
         for full_path in full_paths:
             # try avoids already there type file errors
             try:
-                shutil.copy(full_path, r"Root\AllExcelFilesBackup")
+                shutil.copy(full_path, r"AllExcelFilesBackup")
             except:
                 pass
             name = os.path.basename(full_path)
