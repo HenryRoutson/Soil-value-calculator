@@ -316,8 +316,10 @@ class Widgets(QWidget):
 
         self.ax = canvas.figure.subplots()
         
-        self.ideal_path = r"ExcelFilesDefault\Ideal_Zeros.xlsx"
-        self.soil_path = r"ExcelFilesDefault\Soil_Zeros.xlsx"
+        # Ideal_Zeros
+        self.ideal_path = "Root\ExcelFilesDefault\Ideal_Zeros.xlsx"
+        # Soil_Zeros
+        self.soil_path = "Root\ExcelFilesDefault\Soil_Zeros.xlsx"
         self.FuncAnimation = False
 
     # In the graph nutrients only account for percent of the mass
