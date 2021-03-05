@@ -1,6 +1,6 @@
  #  Soil value calculator
  
-GUI software made to automatically finds the mix of fertilizers to get soil to ideal nutrient values or determines the capacity of a soil for a certain fertilizer.
+GUI software made to automatically find the mix of fertilizers to get soil to ideal nutrient values or determines the capacity of a soil for a certain fertilizer.
 
 Built for windows.
 
