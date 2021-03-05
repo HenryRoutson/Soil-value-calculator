@@ -4,7 +4,7 @@ GUI software made to automatically find the mix of fertilizers to get soil to id
 
 Built for windows.
 
-Run by opening the UserInterface python file, but you can create a shortcut. Copy the URL in the below links to see what the program should look like if you are having problems, they are otherwise rendered in GitHub readme. Use the help menu for an introduction.
+Run by opening the UserInterface python file, but making a shortcut is recommended. Copy the URL in the below links to see what the program should look like if you are having problems, they are otherwise rendered in GitHub readme. Use the help menu for an introduction.
 
 ![ezgif com-video-to-gif](https://user-images.githubusercontent.com/69740744/109637999-64db8500-7b45-11eb-8560-d2b9da3d1af7.gif)
 
